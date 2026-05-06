@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>INS-1657 — КАСКО из ОСАГО | Анализ 06.05.2026</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0f172a;--card:#1e293b;--card-hover:#334155;--border:#334155;--text:#e2e8f0;--text-muted:#94a3b8;--accent:#3b82f6;--accent2:#8b5cf6;--green:#22c55e;--red:#ef4444;--yellow:#eab308;--orange:#f97316;--blue:#06b6d4;--pink:#ec4899}
+body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;min-height:100vh}
+.container{max-width:1400px;margin:0 auto;padding:20px}
+
+/* Header */
+.header{text-align:center;padding:40px 20px 30px;position:relative}
+.header::after{content:'';position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:200px;height:3px;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:2px}
+.header h1{font-size:2.2em;font-weight:700;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:8px}
+.header .subtitle{color:var(--text-muted);font-size:1.1em}
+.header .date-badge{display:inline-block;margin-top:12px;padding:6px 18px;background:var(--card);border:1px solid var(--border);border-radius:20px;font-size:.9em;color:var(--accent)}
+
+/* Metric Cards */
+.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin:30px 0}
+.metric-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:24px;text-align:center;transition:all .3s;position:relative;overflow:hidden}
+.metric-card:hover{transform:translateY(-4px);border-color:var(--accent);box-shadow:0 8px 32px rgba(59,130,246,.15)}
+.metric-card .icon{font-size:2em;margin-bottom:8px}
+.metric-card .value{font-size:2.4em;font-weight:700;margin:4px 0}
+.metric-card .label{color:var(--text-muted);font-size:.9em}
+.metric-card .bar{position:absolute;bottom:0;left:0;height:4px;width:0;transition:width 1.5s ease-out}
+.metric-card.green .value{color:var(--green)}.metric-card.green .bar{background:var(--green)}
+.metric-card.red .value{color:var(--red)}.metric-card.red .bar{background:var(--red)}
+.metric-card.blue .value{color:var(--accent)}.metric-card.blue .bar{background:var(--accent)}
+.metric-card.yellow .value{color:var(--yellow)}.metric-card.yellow .bar{background:var(--yellow)}
+.metric-card.pink .value{color:var(--pink)}.metric-card.pink .bar{background:var(--pink)}
+.metric-card.orange .value{color:var(--orange)}.metric-card.orange .bar{background:var(--orange)}
+
+/* Section */
+.section{margin:30px 0}
+.section-title{font-size:1.4em;font-weight:600;margin-bottom:20px;display:flex;align-items:center;gap:10px}
+.section-title::before{content:'';display:inline-block;width:4px;height:24px;background:linear-gradient(180deg,var(--accent),var(--accent2));border-radius:2px}
+
+/* Grid */
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px}
+@media(max-width:900px){.grid-2,.grid-3{grid-template-columns:1fr}}
+
+/* Card */
+.card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:24px;transition:border-color .3s}
+.card:hover{border-color:var(--accent)}
+.card h3{font-size:1.1em;margin-bottom:16px;color:var(--text-muted)}
+
+/* Charts */
+.chart-container{position:relative;height:300px}
+.chart-container.tall{height:400px}
+
+/* Table */
+.table-wrap{overflow-x:auto;border-radius:12px;border:1px solid var(--border)}
+table{width:100%;border-collapse:collapse;font-size:.9em}
+thead{background:rgba(59,130,246,.1)}
+th{padding:12px 16px;text-align:left;font-weight:600;color:var(--accent);border-bottom:2px solid var(--border);white-space:nowrap}
+td{padding:10px 16px;border-bottom:1px solid rgba(51,65,85,.5)}
+tbody tr{transition:background .2s}
+tbody tr:hover{background:rgba(59,130,246,.05)}
+
+/* Status Badges */
+.badge{display:inline-block;padding:3px 10px;border-radius:12px;font-size:.8em;font-weight:600}
+.badge-approved{background:rgba(34,197,94,.15);color:var(--green);border:1px solid rgba(34,197,94,.3)}
+.badge-rejected{background:rgba(239,68,68,.15);color:var(--red);border:1px solid rgba(239,68,68,.3)}
+.badge-paid{background:rgba(6,182,212,.15);color:var(--blue);border:1px solid rgba(6,182,212,.3)}
+.badge-warning{background:rgba(234,179,8,.15);color:var(--yellow);border:1px solid rgba(234,179,8,.3)}
+.badge-error{background:rgba(249,115,22,.15);color:var(--orange);border:1px solid rgba(249,115,22,.3)}
+.badge-info{background:rgba(59,130,246,.15);color:var(--accent);border:1px solid rgba(59,130,246,.3)}
+
+/* Root Cause Block */
+.root-cause{background:linear-gradient(135deg,rgba(239,68,68,.08),rgba(249,115,22,.08));border:1px solid rgba(239,68,68,.3);border-radius:16px;padding:28px;margin:20px 0}
+.root-cause .cause-title{color:var(--red);font-size:1.3em;font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.root-cause .cause-detail{font-size:1.05em;line-height:1.7}
+.root-cause code{background:rgba(0,0,0,.3);padding:2px 8px;border-radius:6px;font-family:'Cascadia Code',monospace;font-size:.9em;color:var(--orange)}
+
+/* Timeline */
+.timeline{position:relative;padding-left:30px}
+.timeline::before{content:'';position:absolute;left:12px;top:0;bottom:0;width:2px;background:var(--border)}
+.timeline-item{position:relative;margin-bottom:20px;padding-left:20px;animation:fadeIn .5s ease-out}
+.timeline-item::before{content:'';position:absolute;left:-22px;top:6px;width:12px;height:12px;border-radius:50%;border:2px solid var(--accent);background:var(--bg)}
+.timeline-item.error::before{border-color:var(--red);background:var(--red)}
+.timeline-item.success::before{border-color:var(--green);background:var(--green)}
+.timeline-item.warning::before{border-color:var(--yellow)}
+.timeline-item .time{font-size:.85em;color:var(--accent);font-weight:600}
+.timeline-item .text{color:var(--text-muted);font-size:.95em}
+
+/* Recommendation */
+.recommendation{background:linear-gradient(135deg,rgba(59,130,246,.08),rgba(139,92,246,.08));border:1px solid rgba(59,130,246,.3);border-radius:16px;padding:24px;margin:16px 0}
+.recommendation h4{color:var(--accent);margin-bottom:10px}
+.recommendation ul{list-style:none;padding-left:0}
+.recommendation li{padding:6px 0;padding-left:24px;position:relative;color:var(--text-muted)}
+.recommendation li::before{content:'→';position:absolute;left:0;color:var(--accent)}
+
+/* Alert Block */
+.alert{padding:16px 20px;border-radius:12px;margin:12px 0;display:flex;gap:12px;align-items:flex-start}
+.alert-ok{background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.2)}
+.alert-warn{background:rgba(234,179,8,.08);border:1px solid rgba(234,179,8,.2)}
+.alert-error{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2)}
+.alert .alert-icon{font-size:1.3em;flex-shrink:0}
+.alert .alert-text{font-size:.95em;color:var(--text-muted)}
+
+/* Animations */
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.fade-in{opacity:0;animation:fadeIn .6s ease-out forwards}
+.delay-1{animation-delay:.1s}.delay-2{animation-delay:.2s}.delay-3{animation-delay:.3s}.delay-4{animation-delay:.4s}.delay-5{animation-delay:.5s}
+
+/* Tabs */
+.tabs{display:flex;gap:4px;margin-bottom:20px;background:var(--card);border-radius:12px;padding:4px;border:1px solid var(--border)}
+.tab{padding:10px 20px;border-radius:8px;cursor:pointer;font-size:.9em;color:var(--text-muted);transition:all .2s;user-select:none}
+.tab:hover{color:var(--text);background:rgba(59,130,246,.1)}
+.tab.active{background:var(--accent);color:#fff;font-weight:600}
+.tab-content{display:none}
+.tab-content.active{display:block;animation:fadeIn .3s ease-out}
+
+/* GUID */
+.guid{font-family:'Cascadia Code',monospace;font-size:.82em;color:var(--text-muted);background:rgba(0,0,0,.2);padding:2px 6px;border-radius:4px}
+
+/* Footer */
+.footer{text-align:center;padding:30px 20px;color:var(--text-muted);font-size:.85em;border-top:1px solid var(--border);margin-top:40px}
+</style>
+</head>
+<body>
+<div class="container">
+
+<!-- HEADER -->
+<div class="header fade-in">
+  <h1>INS-1657 — КАСКО из ОСАГО</h1>
+  <div class="subtitle">Аналитический отчёт по первому запуску у нового партнёра</div>
+  <div class="date-badge">6 мая 2026 | Альфа-Банк (osago.ab.insapp.ru)</div>
+</div>
+
+<!-- METRICS -->
+<div class="metrics">
+  <div class="metric-card blue fade-in delay-1">
+    <div class="icon">📋</div>
+    <div class="value" data-count="4">0</div>
+    <div class="label">ОСАГО-заявок</div>
+    <div class="bar" data-width="100"></div>
+  </div>
+  <div class="metric-card pink fade-in delay-2">
+    <div class="icon">🔗</div>
+    <div class="value" data-count="4">0</div>
+    <div class="label">Дочерних КАСКО</div>
+    <div class="bar" data-width="100"></div>
+  </div>
+  <div class="metric-card red fade-in delay-3">
+    <div class="icon">✕</div>
+    <div class="value" data-count="4">0</div>
+    <div class="label">КАСКО Rejected</div>
+    <div class="bar" data-width="100"></div>
+  </div>
+  <div class="metric-card green fade-in delay-4">
+    <div class="icon">✓</div>
+    <div class="value" data-count="55">0</div>
+    <div class="label">ОСАГО Approved</div>
+    <div class="bar" data-width="100"></div>
+  </div>
+  <div class="metric-card orange fade-in delay-5">
+    <div class="icon">💰</div>
+    <div class="value" data-count="1">0</div>
+    <div class="label">ОСАГО Оплачено</div>
+    <div class="bar" data-width="25"></div>
+  </div>
+</div>
+
+<!-- ROOT CAUSE -->
+<div class="root-cause fade-in">
+  <div class="cause-title">⚠ Корневая причина: Андеррайтер Альфы</div>
+  <div class="cause-detail">
+    Все 4 КАСКО-оффера получили <strong style="color:var(--red)">Rejected</strong> от АльфаСтрахования по причине:
+    <br><br>
+    <code>AlfaKaskoIntegration → "Требуется согласование андеррайтера"</code>
+    <br><br>
+    Альфа вместо автоматического расчёта вернула статус «требуется ручной андеррайтинг».
+    Insapp корректно трактует это как отказ — <code>PremiumAmount = NULL</code>, <code>InsurerOfferData = NULL</code>.
+    <strong>Проблема на стороне СК, не Insapp.</strong>
+  </div>
+</div>
+
+<!-- TABS: Details -->
+<div class="tabs fade-in">
+  <div class="tab active" data-tab="kasko">КАСКО-заявки</div>
+  <div class="tab" data-tab="osago">ОСАГО-заявки</div>
+  <div class="tab" data-tab="logs">Логи и ошибки</div>
+  <div class="tab" data-tab="timeline">Хронология</div>
+  <div class="tab" data-tab="recommendations">Рекомендации</div>
+</div>
+
+<!-- TAB: KASKO -->
+<div class="tab-content active" id="tab-kasko">
+  <div class="grid-2">
+    <div class="card">
+      <h3>Статусы КАСКО-офферов</h3>
+      <div class="chart-container">
+        <canvas id="kaskoStatusChart"></canvas>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Время обработки КАСКО-заявок</h3>
+      <div class="chart-container">
+        <canvas id="kaskoTimeChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Детали КАСКО-заявок</div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>ApplicationId</th>
+            <th>Создана</th>
+            <th>Родитель ОСАГО</th>
+            <th>СК</th>
+            <th>Продукт</th>
+            <th>Статус</th>
+            <th>Ошибка</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>1</td>
+            <td><span class="guid">08deab69-5eee-...-3e14b837467e</span></td>
+            <td>15:16:58</td>
+            <td><span class="guid">08deab68-c6d0</span></td>
+            <td>АльфаСтрахование</td>
+            <td>КАСКО "за 3"</td>
+            <td><span class="badge badge-rejected">Rejected</span></td>
+            <td style="color:var(--orange)">Требуется согласование андеррайтера</td>
+          </tr>
+          <tr>
+            <td>2</td>
+            <td><span class="guid">08deab69-9dd4-...-3e14b8382589</span></td>
+            <td>15:18:44</td>
+            <td><span class="guid">08deab69-70ad</span></td>
+            <td>АльфаСтрахование</td>
+            <td>КАСКО "за 3"</td>
+            <td><span class="badge badge-rejected">Rejected</span></td>
+            <td style="color:var(--orange)">Требуется согласование андеррайтера</td>
+          </tr>
+          <tr>
+            <td>3</td>
+            <td><span class="guid">08deab69-e071-...-3e14b8391c5d</span></td>
+            <td>15:20:35</td>
+            <td><span class="guid">08deab69-bc35</span></td>
+            <td>АльфаСтрахование</td>
+            <td>КАСКО "за 3"</td>
+            <td><span class="badge badge-rejected">Rejected</span></td>
+            <td style="color:var(--orange)">Требуется согласование андеррайтера</td>
+          </tr>
+          <tr>
+            <td>4</td>
+            <td><span class="guid">08deab6a-3a26-...-3e14b83a5487</span></td>
+            <td>15:23:06</td>
+            <td><span class="guid">08deab69-f6dd</span></td>
+            <td>АльфаСтрахование</td>
+            <td>КАСКО "за 3"</td>
+            <td><span class="badge badge-rejected">Rejected</span></td>
+            <td style="color:var(--orange)">Требуется согласование андеррайтера</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="grid-2" style="margin-top:20px">
+    <div class="alert alert-error">
+      <div class="alert-icon">⚠</div>
+      <div class="alert-text"><strong>PremiumAmount = NULL</strong> — Альфа не рассчитала премию, т.к. заявка не прошла автоматический скоринг</div>
+    </div>
+    <div class="alert alert-error">
+      <div class="alert-icon">⚠</div>
+      <div class="alert-text"><strong>InsurerOfferData = NULL</strong> — Альфа не вернула данные оффера, нет InsurerApplicationId</div>
+    </div>
+  </div>
+</div>
+
+<!-- TAB: OSAGO -->
+<div class="tab-content" id="tab-osago">
+  <div class="grid-2">
+    <div class="card">
+      <h3>ОСАГО: Офферы по СК (Approved)</h3>
+      <div class="chart-container tall">
+        <canvas id="osagoSkChart"></canvas>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Статус оплаты ОСАГО</h3>
+      <div class="chart-container">
+        <canvas id="osagoPaidChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <div class="section" style="margin-top:20px">
+    <div class="section-title">ОСАГО-заявки: сводка</div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>ApplicationId</th><th>Создана</th><th>Approved СК</th><th>Оплачена</th><th>VIN</th><th>InsappMarketing</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="guid">08deab68-c6d0-...-3e14b8351b37</span></td>
+            <td>15:12:43</td>
+            <td>13</td>
+            <td><span class="badge badge-rejected">Нет</span></td>
+            <td>XWES381KDM0000296</td>
+            <td><span class="badge badge-rejected">false</span></td>
+          </tr>
+          <tr>
+            <td><span class="guid">08deab69-70ad-...-3e14b8379023</span></td>
+            <td>15:17:28</td>
+            <td>14</td>
+            <td><span class="badge badge-rejected">Нет</span></td>
+            <td>XWES381KDM0000296</td>
+            <td><span class="badge badge-rejected">false</span></td>
+          </tr>
+          <tr>
+            <td><span class="guid">08deab69-bc35-...-3e14b8388df9</span></td>
+            <td>15:19:35</td>
+            <td>14</td>
+            <td><span class="badge badge-rejected">Нет</span></td>
+            <td>XWES381KDM0000296</td>
+            <td><span class="badge badge-rejected">false</span></td>
+          </tr>
+          <tr>
+            <td><span class="guid">08deab69-f6dd-...-3e14b8397341</span></td>
+            <td>15:21:13</td>
+            <td>14</td>
+            <td><span class="badge badge-paid">Да (Росгосстрах)</span></td>
+            <td>XWES381KDM0000296</td>
+            <td><span class="badge badge-rejected">false</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- TAB: LOGS -->
+<div class="tab-content" id="tab-logs">
+  <div class="grid-2">
+    <div class="card">
+      <h3>Критичные BusinessLogs</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Время</th><th>Сервис</th><th>Сообщение</th><th>Уровень</th></tr></thead>
+          <tbody>
+            <tr><td>15:17:00</td><td style="color:var(--orange)">AlfaKaskoIntegration</td><td>Требуется согласование андеррайтера</td><td><span class="badge badge-warning">WARN</span></td></tr>
+            <tr><td>15:18:45</td><td style="color:var(--orange)">AlfaKaskoIntegration</td><td>Требуется согласование андеррайтера</td><td><span class="badge badge-warning">WARN</span></td></tr>
+            <tr><td>15:20:37</td><td style="color:var(--orange)">AlfaKaskoIntegration</td><td>Требуется согласование андеррайтера</td><td><span class="badge badge-warning">WARN</span></td></tr>
+            <tr><td>15:23:08</td><td style="color:var(--orange)">AlfaKaskoIntegration</td><td>Требуется согласование андеррайтера</td><td><span class="badge badge-warning">WARN</span></td></tr>
+            <tr><td>15:23:33</td><td>ApplicationService</td><td>СК не вернули предложения</td><td><span class="badge badge-error">ERROR</span></td></tr>
+            <tr><td>15:25:06</td><td>KaskoFromOsagoEmailHandler</td><td>Не отправлено: InsappMarketingAgreement=false</td><td><span class="badge badge-info">INFO</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Диагностика</h3>
+      <div class="alert alert-ok" style="margin-bottom:12px">
+        <div class="alert-icon">✓</div>
+        <div class="alert-text"><strong>ErrorLogs: 0 ошибок</strong> — системных сбоев нет, Insapp отработал корректно</div>
+      </div>
+      <div class="alert alert-warn" style="margin-bottom:12px">
+        <div class="alert-icon">⚠</div>
+        <div class="alert-text"><strong>InsurerOfferData = NULL</strong> — Альфа не вернула данные расчёта, значит оффер не был создан на стороне СК</div>
+      </div>
+      <div class="alert alert-ok">
+        <div class="alert-icon">✓</div>
+        <div class="alert-text"><strong>Догонялка не отправлена</strong> — корректно: InsappMarketingAgreement=false (INS-3324)</div>
+      </div>
+      <div class="alert alert-ok" style="margin-top:12px">
+        <div class="alert-icon">✓</div>
+        <div class="alert-text"><strong>ОСАГО-флоу OK</strong> — 55 офферов Approved от 13-14 СК, 1 оплачен</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:20px">
+    <h3>ОСАГО Upsales — кто вернул upsale-офферы</h3>
+    <div class="chart-container">
+      <canvas id="upsaleChart"></canvas>
+    </div>
+  </div>
+</div>
+
+<!-- TAB: TIMELINE -->
+<div class="tab-content" id="tab-timeline">
+  <div class="card">
+    <h3>Хронология событий 06.05.2026</h3>
+    <div class="timeline">
+      <div class="timeline-item">
+        <div class="time">15:12:43</div>
+        <div class="text">Создана ОСАГО-заявка <span class="guid">08deab68-c6d0</span></div>
+      </div>
+      <div class="timeline-item success">
+        <div class="time">15:15:18</div>
+        <div class="text">ОСАГО: 13 СК вернули Approved офферы (Согласие, Ингос, ВСК, РГС, Гелиос, Зетта, Альфа...)</div>
+      </div>
+      <div class="timeline-item warning">
+        <div class="time">15:16:58</div>
+        <div class="text">Создана дочерняя КАСКО-заявка <span class="guid">08deab69-5eee</span> → <strong style="color:var(--red)">Rejected</strong> (андеррайтер)</div>
+      </div>
+      <div class="timeline-item">
+        <div class="time">15:17:28</div>
+        <div class="text">Создана ОСАГО-заявка <span class="guid">08deab69-70ad</span></div>
+      </div>
+      <div class="timeline-item warning">
+        <div class="time">15:18:44</div>
+        <div class="text">КАСКО <span class="guid">08deab69-9dd4</span> → <strong style="color:var(--red)">Rejected</strong> (андеррайтер)</div>
+      </div>
+      <div class="timeline-item">
+        <div class="time">15:19:35</div>
+        <div class="text">Создана ОСАГО-заявка <span class="guid">08deab69-bc35</span></div>
+      </div>
+      <div class="timeline-item warning">
+        <div class="time">15:20:35</div>
+        <div class="text">КАСКО <span class="guid">08deab69-e071</span> → <strong style="color:var(--red)">Rejected</strong> (андеррайтер)</div>
+      </div>
+      <div class="timeline-item">
+        <div class="time">15:21:13</div>
+        <div class="text">Создана ОСАГО-заявка <span class="guid">08deab69-f6dd</span></div>
+      </div>
+      <div class="timeline-item success">
+        <div class="time">15:21:28</div>
+        <div class="text">ОСАГО: Росгосстрах → Approved (12 673 ₽)</div>
+      </div>
+      <div class="timeline-item warning">
+        <div class="time">15:23:06</div>
+        <div class="text">КАСКО <span class="guid">08deab6a-3a26</span> → <strong style="color:var(--red)">Rejected</strong> (андеррайтер)</div>
+      </div>
+      <div class="timeline-item success">
+        <div class="time">15:21–15:23</div>
+        <div class="text">ОСАГО <span class="guid">08deab69-f6dd</span> → <strong style="color:var(--green)">Paid</strong> через Росгосстрах</div>
+      </div>
+      <div class="timeline-item error">
+        <div class="time">15:23:33</div>
+        <div class="text">GetInfoForRedirect: «СК не вернули предложения» — ожидаемо, все КАСКО Rejected</div>
+      </div>
+      <div class="timeline-item">
+        <div class="time">15:25:06</div>
+        <div class="text">Dogonyalka не отправлена: InsappMarketingAgreement=false (корректно)</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TAB: RECOMMENDATIONS -->
+<div class="tab-content" id="tab-recommendations">
+  <div class="recommendation">
+    <h4>🎯 Действие 1: Связаться с Альфа-Страхованием</h4>
+    <ul>
+      <li>Сообщить Альфе что все 4 заявки на «КАСКО за 3» получают статус «Требуется согласование андеррайтера»</li>
+      <li>Запросить отключение ручного андеррайтинга для этого партнёра/продукта</li>
+      <li>Уточнить какие именно данные проходят автоматический скоринг (VIN, возраст авто, регион)</li>
+    </ul>
+  </div>
+
+  <div class="recommendation">
+    <h4>🎯 Действие 2: Провести тест на реальных данных</h4>
+    <ul>
+      <li>Все 4 заявки были на один VIN <code>XWES381KDM0000296</code> (тестовые данные)</li>
+      <li>Возможно тестовый VIN не проходит андеррайтинговые правила Альфы</li>
+      <li>Провести тест на реальных данных клиента для подтверждения/опровержения</li>
+    </ul>
+  </div>
+
+  <div class="recommendation">
+    <h4>🎯 Действие 3: Проверить InsappMarketingAgreement</h4>
+    <ul>
+      <li>У всех 4 заявок <code>InsappMarketingAgreement=false</code></li>
+      <li>Догонялка по email не отправляется — корректно по INS-3324</li>
+      <li>Убедиться что на проде фронтенд передаёт <code>InsappMarketingAgreement=true</code> при реальных покупках</li>
+    </ul>
+  </div>
+
+  <div class="card" style="margin-top:20px">
+    <h3>Чеклист готовности фичи к продакшену</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Пункт</th><th>Статус</th><th>Комментарий</th></tr></thead>
+        <tbody>
+          <tr><td>Создание КАСКО-заявки</td><td><span class="badge badge-approved">OK</span></td><td>4/4 заявки созданы корректно</td></tr>
+          <tr><td>Привязка ParentApplicationId</td><td><span class="badge badge-approved">OK</span></td><td>4/4 корректно привязаны к ОСАГО</td></tr>
+          <tr><td>ApiKey KaskoFromOsago</td><td><span class="badge badge-approved">OK</span></td><td>07b2d612fa3f45baae771e8223618e38</td></tr>
+          <tr><td>Запрос в Альфу КАСКО за 3</td><td><span class="badge badge-approved">OK</span></td><td>4/4 запроса отправлены</td></tr>
+          <tr><td>Обработка ответа СК</td><td><span class="badge badge-warning">WARN</span></td><td>"Андеррайтер" → Rejected (на стороне СК)</td></tr>
+          <tr><td>ОСАГО-офферы</td><td><span class="badge badge-approved">OK</span></td><td>55 Approved от 13-14 СК</td></tr>
+          <tr><td>Оплата ОСАГО</td><td><span class="badge badge-approved">OK</span></td><td>1/4 оплачена через Росгосстрах</td></tr>
+          <tr><td>Dogonyalka (email)</td><td><span class="badge badge-approved">OK</span></td><td>Не отправляется при consent=false (INS-3324)</td></tr>
+          <tr><td>ErrorLogs</td><td><span class="badge badge-approved">OK</span></td><td>0 системных ошибок</td></tr>
+          <tr><td>GetInfoForRedirect</td><td><span class="badge badge-approved">OK</span></td><td>«СК не вернули» — ожидаемо при 0 approved</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+  INS-1657 КАСКО из ОСАГО | Аналитический отчёт | 6 мая 2026 | ApiKey ОСАГО: 6e5a6599... | ApiKey КАСКО: 07b2d612...<br>
+  VIN: XWES381KDM0000296 | ГРЗ: М654ВУ977 | Партнёр: osago.ab.insapp.ru
+</div>
+
+</div><!-- /container -->
+
+<script>
+// === Animated counters ===
+document.querySelectorAll('.metric-card .value').forEach(el => {
+  const target = parseInt(el.dataset.count);
+  let current = 0;
+  const step = Math.max(1, Math.floor(target / 30));
+  const timer = setInterval(() => {
+    current += step;
+    if (current >= target) { current = target; clearInterval(timer); }
+    el.textContent = current;
+  }, 40);
+});
+
+// === Animated bars ===
+setTimeout(() => {
+  document.querySelectorAll('.metric-card .bar').forEach(bar => {
+    bar.style.width = bar.dataset.width + '%';
+  });
+}, 200);
+
+// === Tabs ===
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('tab-' + tab.dataset.tab).classList.add('active');
+  });
+});
+
+// === Charts ===
+const chartColors = {
+  red: '#ef4444', green: '#22c55e', blue: '#3b82f6', yellow: '#eab308',
+  orange: '#f97316', pink: '#ec4899', purple: '#8b5cf6', cyan: '#06b6d4',
+  lime: '#84cc16', teal: '#14b8a6', amber: '#f59e0b', rose: '#f43f5e',
+  indigo: '#6366f1'
+};
+
+// KASKO Status donut
+new Chart(document.getElementById('kaskoStatusChart'), {
+  type: 'doughnut',
+  data: {
+    labels: ['Rejected (Андеррайтер)', 'Approved', 'Failed', 'Timeout'],
+    datasets: [{
+      data: [4, 0, 0, 0],
+      backgroundColor: [chartColors.red, chartColors.green, chartColors.orange, chartColors.yellow],
+      borderWidth: 0,
+      borderRadius: 4
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: {
+      legend: { position: 'bottom', labels: { color: '#94a3b8', padding: 16, font: { size: 13 } } }
+    },
+    cutout: '65%'
+  }
+});
+
+// KASKO processing time
+new Chart(document.getElementById('kaskoTimeChart'), {
+  type: 'bar',
+  data: {
+    labels: ['Заявка 1', 'Заявка 2', 'Заявка 3', 'Заявка 4'],
+    datasets: [{
+      label: 'Секунды',
+      data: [1.4, 1.5, 1.8, 1.2],
+      backgroundColor: [chartColors.red, chartColors.red, chartColors.red, chartColors.red],
+      borderRadius: 8,
+      barThickness: 40
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    scales: {
+      y: { beginAtZero: true, grid: { color: 'rgba(51,65,85,0.3)' }, ticks: { color: '#94a3b8' } },
+      x: { grid: { display: false }, ticks: { color: '#94a3b8' } }
+    },
+    plugins: { legend: { display: false } }
+  }
+});
+
+// OSAGO by SK
+new Chart(document.getElementById('osagoSkChart'), {
+  type: 'bar',
+  data: {
+    labels: ['Альфа', 'Боровицкое', 'Гелиос', 'Ингос', 'РГС', 'Ренессанс', 'Согласие', 'ВСК', 'Зетта', 'МАКС', 'СОГАЗ', 'Энергогарант', 'Югория', 'РЕСО'],
+    datasets: [{
+      label: 'Approved',
+      data: [4, 4, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4],
+      backgroundColor: [chartColors.red, chartColors.green, chartColors.cyan, chartColors.blue, chartColors.orange, chartColors.purple, chartColors.pink, chartColors.teal, chartColors.lime, chartColors.amber, chartColors.indigo, chartColors.yellow, chartColors.rose, chartColors.green],
+      borderRadius: 6,
+      barThickness: 28
+    }]
+  },
+  options: {
+    indexAxis: 'y',
+    responsive: true, maintainAspectRatio: false,
+    scales: {
+      x: { beginAtZero: true, grid: { color: 'rgba(51,65,85,0.3)' }, ticks: { color: '#94a3b8', stepSize: 1 } },
+      y: { grid: { display: false }, ticks: { color: '#94a3b8', font: { size: 11 } } }
+    },
+    plugins: { legend: { display: false } }
+  }
+});
+
+// OSAGO Paid donut
+new Chart(document.getElementById('osagoPaidChart'), {
+  type: 'doughnut',
+  data: {
+    labels: ['Оплачено', 'Не оплачено'],
+    datasets: [{
+      data: [1, 3],
+      backgroundColor: [chartColors.green, chartColors.red],
+      borderWidth: 0,
+      borderRadius: 4
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: {
+      legend: { position: 'bottom', labels: { color: '#94a3b8', padding: 16, font: { size: 13 } } }
+    },
+    cutout: '65%'
+  }
+});
+
+// Upsale chart
+new Chart(document.getElementById('upsaleChart'), {
+  type: 'bar',
+  data: {
+    labels: ['Согласие (KaskoProtectionPlus)', 'Ингос (AutoNS)', 'ВСК (KaskoCompactMin)', 'РГС (KaskoNoPolicyRgs)', 'Гелиос (UcProductKasko)', 'Альфа (KaskoNoPolicy)', 'Ренессанс (KaskoNoPolicy)', 'МАКС (KaskoBystroMaks)', 'РЕСО (KaskoProfiUltraLite)', 'Зетта', 'СОГАЗ', 'Югория', 'Боровицкое', 'Энергогарант'],
+    datasets: [
+      { label: 'Upsale получен', data: [4,4,4,4,3,0,0,0,0,0,0,0,0,0], backgroundColor: chartColors.green, borderRadius: 4 },
+      { label: 'Нет upsale плана', data: [0,0,0,0,0,0,0,0,0,4,4,4,4,4], backgroundColor: 'rgba(148,163,184,0.3)', borderRadius: 4 }
+    ]
+  },
+  options: {
+    indexAxis: 'y',
+    responsive: true, maintainAspectRatio: false,
+    scales: {
+      x: { stacked: true, beginAtZero: true, grid: { color: 'rgba(51,65,85,0.3)' }, ticks: { color: '#94a3b8', stepSize: 1 } },
+      y: { stacked: true, grid: { display: false }, ticks: { color: '#94a3b8', font: { size: 10 } } }
+    },
+    plugins: { legend: { position: 'bottom', labels: { color: '#94a3b8' } } }
+  }
+});
+</script>
+</body>
+</html>
