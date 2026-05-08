@@ -67,7 +67,7 @@ tbody tr:hover{background:rgba(56,189,248,.05)}
     <div class="metric ok"><b>23/23</b><span>созданы на правильном KaskoFromOsago ApiKey</span></div>
     <div class="metric violet"><b>6</b><span>получили КАСКО-оффер 4 950 ₽</span></div>
     <div class="metric warn"><b>13</b><span>RejectAllInsurers / отказ Альфы</span></div>
-    <div class="metric bad"><b>0</b><span>оплат КАСКО и системных ErrorLogs</span></div>
+    <div class="metric bad"><b>1</b><span>КАСКО-связанная ErrorLogs на родительской ОСАГО</span></div>
   </div>
 
   <div class="card">
@@ -75,7 +75,7 @@ tbody tr:hover{background:rgba(56,189,248,.05)}
     <p><b>Создание дочерних КАСКО-заявок работает корректно.</b> Все найденные заявки имеют `ApplicationTypeId = 9`, связаны с родительскими ОСАГО-заявками, используют настроенный КАСКО-ключ и копируют ключевые данные клиента/авто без расхождений.</p>
     <p><b>Продаж КАСКО за проверенный период нет.</b> Причины по данным БД: часть заявок получила отказ всех страховщиков, 6 заявок получили оффер Альфы по продукту `КАСКО "за 3"` на 4 950 ₽, но не были оплачены, 4 заявки остались на `Filled` без оффера.</p>
     <div class="note risk">
-      <b>Что требует внимания:</b> 4 заявки остались на статусе `Filled`; по ним в BusinessLogs есть `AvtocodClient/HandleReportResponse` с ошибками частей отчета `ads.price`, `mileages.registry` или `references.base`. Это не системный ErrorLogs, но объясняет, почему эти заявки не дошли до отправки в СК.
+      <b>Что требует внимания:</b> 4 заявки остались на статусе `Filled`; по дочерним КАСКО в BusinessLogs есть `AvtocodClient/HandleReportResponse` с ошибками частей отчета `ads.price`, `mileages.registry` или `references.base`. По родительским ОСАГО также найдена 1 КАСКО-связанная системная ошибка `PkaskoMapper.ToBaseKaskoRequest`: `Nullable object must have a value`.
     </div>
   </div>
 
@@ -126,10 +126,12 @@ tbody tr:hover{background:rgba(56,189,248,.05)}
         <li>Родительских ОСАГО оплачено: <b>8/23</b>.</li>
         <li>Офферов КАСКО с премией: <b>6</b>, сумма оффера в каждом случае <b>4 950 ₽</b>.</li>
         <li>Полисов КАСКО / paid-сигналов в офферах: <b>0</b>.</li>
-        <li><code>ErrorLogs</code> по 23 КАСКО-заявкам: <b>0</b>.</li>
-        <li><code>BusinessLogs</code>: 4 Avtocod ошибки частей отчета, 2 информационные строки ReturnKaskoClientByEmailJob.</li>
+        <li><code>AlfaKaskoIntegration/CalcOffer</code> по родительским ОСАГО: <b>12</b> логов на 12 заявках, sample `Требуется согласование андеррайтера`.</li>
+        <li><code>KaskoFromOsagoEmailHandler</code> по родительским ОСАГО: <b>6</b> логов, письмо не отправлено из-за отсутствия `InsappMarketingAgreement`.</li>
+        <li><code>ErrorLogs</code> по дочерним КАСКО: <b>0</b>; по родительским ОСАГО: <b>1</b> КАСКО-связанная ошибка `PkaskoMapper.ToBaseKaskoRequest`.</li>
+        <li><code>BusinessLogs</code> по дочерним КАСКО: 4 Avtocod ошибки частей отчета.</li>
       </ul>
-      <div class="note">`AlfaLogs` по самим 23 дочерним `ApplicationId` не найден: HTTP-логи Альфы для этого процесса не привязаны к дочернему КАСКО `ApplicationId`. Результат отправки проверен по `Offers`, `ApplicationStatuses` и `BusinessLogs`.</div>
+      <div class="note">Привязка логов по этой фиче: бизнес/интеграционные КАСКО-логи пишутся в рамках родительского ОСАГО `ApplicationId`; исключение — Avtocod для КАСКО, он пишется на дочерний КАСКО `ApplicationId`.</div>
     </div>
   </div>
 
@@ -191,7 +193,7 @@ tbody tr:hover{background:rgba(56,189,248,.05)}
           <tr><td>Копирование данных</td><td><span class="badge b-ok">OK</span></td><td>страхователь, собственник, водитель и данные авто совпадают 23/23</td></tr>
           <tr><td>Получение оффера</td><td><span class="badge b-warn">WARN</span></td><td>6/23 получили оффер, 13/23 отказ, 4/23 не дошли до оффера</td></tr>
           <tr><td>Продажа КАСКО</td><td><span class="badge b-bad">NO SALES</span></td><td>0 оплат КАСКО</td></tr>
-          <tr><td>Системные ошибки</td><td><span class="badge b-ok">OK</span></td><td>`ErrorLogs` по заявкам фичи: 0</td></tr>
+          <tr><td>Системные ошибки</td><td><span class="badge b-warn">WARN</span></td><td>`ErrorLogs` по дочерним КАСКО: 0; по родительским ОСАГО: 1 ошибка `PkaskoMapper.ToBaseKaskoRequest` на `08deac57-38f9-7f0b-25c3-3e0ba4717248`</td></tr>
         </tbody>
       </table>
     </div>
