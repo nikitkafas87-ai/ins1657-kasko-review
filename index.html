@@ -197,6 +197,7 @@ code{background:#f1f4f7;border:1px solid var(--line);border-radius:5px;padding:1
       <small>Навигация</small>
       <a href="#summary" class="active">Итог</a>
       <a href="#flow">Воронка</a>
+      <a href="#creation-gate">Почему 23</a>
       <a href="#testing">Что проверяли</a>
       <a href="#logs">Логи и ошибки</a>
       <a href="#applications">Заявки</a>
@@ -259,9 +260,64 @@ code{background:#f1f4f7;border:1px solid var(--line);border-radius:5px;padding:1
         <div class="panel-head">
           <div>
             <h2>Воронка фичи</h2>
-            <p class="sub">История статусов показывает, что создание и заполнение проходят, дальше часть заявок стопорится на Avtocod, часть получает отказ СК, часть получает оффер без оплаты.</p>
+            <p class="sub">Из 979 ОСАГО только 29 проходят базовый gate: статус `PaymentLinkReceived` или дальше и авто не старше 10 лет. После проверки обогащения остается 23 созданные КАСКО.</p>
           </div>
           <span class="tag info">23 заявки / 3 дня</span>
+        </div>
+        <div class="flow">
+          <div class="step"><b>979</b><span>ОСАГО</span><span>на ключе за период</span></div>
+          <div class="step"><b>66</b><span>PaymentLink+</span><span>дошли до ссылки/дальше</span></div>
+          <div class="step"><b>29</b><span>+ возраст</span><span>год авто >= 2016</span></div>
+          <div class="step"><b>23</b><span>+ обогащение</span><span>создана КАСКО type 9</span></div>
+          <div class="step"><b>0</b><span>Paid</span><span>продаж фичи нет</span></div>
+        </div>
+        <div class="grid-2 section">
+          <div class="callout blue">
+            <strong>Почему не считать все 979 потенциальными</strong>
+            914 ОСАГО не дошли до `PaymentLinkReceived`: 72 из них с авто до 10 лет, 199 старше 10 лет, 643 без года выпуска в данных авто.
+          </div>
+          <div class="callout amber">
+            <strong>Почему не все 29 стали КАСКО</strong>
+            5 заявок получили `Данные от автокод неполные.`, еще 1 заявка не имеет `CarCharacteristicsRequestId` и ответа PaidRequests. По этим 6 точных логов `KaskoFromOsago` нет.
+          </div>
+        </div>
+      </section>
+
+      <section class="section panel" id="creation-gate">
+        <div class="panel-head">
+          <div>
+            <h2>Почему создано только 23 КАСКО</h2>
+            <p class="sub">Проверка по родительским ОСАГО-заявкам: дочерняя КАСКО создается только после статуса оплаты/ссылки, возраста авто до 10 лет и успешного usable-обогащения Avtocod.</p>
+          </div>
+          <span class="tag warn">6 отсечены до KaskoFromOsago</span>
+        </div>
+        <div class="grid-3">
+          <div class="callout green"><strong>23 созданы</strong>Есть дочерняя заявка `ProductTypeId = 2`, `ApplicationTypeId = 9`, `ParentApplicationId` заполнен.</div>
+          <div class="callout amber"><strong>5 неполный Avtocod</strong>В логах ОСАГО `AvtocodMapper/ToEnrichmentCurrentOsago`: `Данные от автокод неполные.`.</div>
+          <div class="callout red"><strong>1 без ответа обогащения</strong>`CarCharacteristicsRequestId IS NULL`, PaidRequests response отсутствует, `KaskoFromOsago` не запускался.</div>
+        </div>
+        <div class="table-wrap section">
+          <table>
+            <thead><tr><th>ОСАГО ApplicationId</th><th>Номер</th><th>Статус</th><th>Год</th><th>Что найдено</th><th>Причина отсутствия КАСКО</th></tr></thead>
+            <tbody>
+              <tr><td class="mono">08deaaea-c3ed-b788-25c3-3e2638f6bcab</td><td>89307575</td><td>Paid</td><td>2019</td><td>PaidRequests response есть</td><td>2 лога `Данные от автокод неполные.`</td></tr>
+              <tr><td class="mono">08deab01-bd00-06ed-25c3-3e2638050825</td><td>89309837</td><td>Paid</td><td>2023</td><td>`CarCharacteristicsRequestId IS NULL`</td><td>нет PaidRequests response и нет точных `KaskoFromOsago` логов</td></tr>
+              <tr><td class="mono">08deab39-2479-2d50-25c3-3e2638648122</td><td>89324296</td><td>BuyButtonPressed</td><td>2026</td><td>`CarCharacteristicsRequestId IS NULL`</td><td>1 лог `Данные от автокод неполные.`</td></tr>
+              <tr><td class="mono">08deab3a-4829-02a9-25c3-3e263868a73b</td><td>89324914</td><td>BuyButtonPressed</td><td>2026</td><td>`CarCharacteristicsRequestId IS NULL`</td><td>2 лога `Данные от автокод неполные.`</td></tr>
+              <tr><td class="mono">08deab3b-d840-226b-25c3-3e26386ecbc9</td><td>89325816</td><td>Paid</td><td>2026</td><td>`CarCharacteristicsRequestId IS NULL`</td><td>2 лога `Данные от автокод неполные.`</td></tr>
+              <tr><td class="mono">08deab3c-b67b-a855-25c3-3e26387210fa</td><td>89326295</td><td>Paid</td><td>2026</td><td>`CarCharacteristicsRequestId IS NULL`</td><td>2 лога `Данные от автокод неполные.`</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="table-note">Вывод: малое число созданных КАСКО ожидаемо после полного gate. Расхождение не 23 против 979, а 23 созданных из 29 поверхностно подходящих; оставшиеся 6 отсекаются до запуска `KaskoFromOsago`.</p>
+      </section>
+
+      <section class="section panel">
+        <div class="panel-head">
+          <div>
+            <h2>Воронка уже созданных КАСКО</h2>
+            <p class="sub">После создания дочерней заявки часть заявок стопорится на Avtocod, часть получает отказ СК, часть получает оффер без оплаты.</p>
+          </div>
         </div>
         <div class="flow">
           <div class="step"><b>23</b><span>New</span><span>созданы</span></div>
