@@ -260,7 +260,7 @@ code{background:#f1f4f7;border:1px solid var(--line);border-radius:5px;padding:1
         <div class="panel-head">
           <div>
             <h2>Воронка фичи</h2>
-            <p class="sub">Из 979 ОСАГО только 29 проходят базовый gate: статус `PaymentLinkReceived` или дальше и авто не старше 10 лет. После проверки обогащения остается 23 созданные КАСКО.</p>
+            <p class="sub">До проверки возраста дошли не все 979 ОСАГО, а только 66 заявок со статусом `PaymentLinkReceived` или дальше. Из этих 66 под возрастной критерий попали 29: остальные 37 отсеялись как авто старше 10 лет.</p>
           </div>
           <span class="tag info">23 заявки / 3 дня</span>
         </div>
@@ -277,9 +277,14 @@ code{background:#f1f4f7;border:1px solid var(--line);border-radius:5px;padding:1
             914 ОСАГО не дошли до `PaymentLinkReceived`: 72 из них с авто до 10 лет, 199 старше 10 лет, 643 без года выпуска в данных авто.
           </div>
           <div class="callout amber">
-            <strong>Почему не все 29 стали КАСКО</strong>
-            5 заявок получили `Данные от автокод неполные.`, еще 1 заявка не имеет `CarCharacteristicsRequestId` и ответа PaidRequests. По этим 6 точных логов `KaskoFromOsago` нет.
+            <strong>Почему к валидации возраста попали только 66</strong>
+            Условие возраста применимо только после нужного статуса ОСАГО. Внутри этих 66: 29 авто не старше 10 лет, 37 авто старше 10 лет.
           </div>
+        </div>
+        <div class="grid-3 section">
+          <div class="callout green"><strong>29 молодых авто</strong>Год выпуска `>= 2016`; это поверхностные кандидаты на создание КАСКО.</div>
+          <div class="callout red"><strong>37 старых авто</strong>Дошли до `PaymentLinkReceived+`, но не проходят ограничение "не старше 10 лет".</div>
+          <div class="callout amber"><strong>6 из 29 отсечены дальше</strong>5 с неполным Avtocod, 1 без видимого ответа обогащения; поэтому создано 23 КАСКО.</div>
         </div>
       </section>
 
@@ -296,6 +301,7 @@ code{background:#f1f4f7;border:1px solid var(--line);border-radius:5px;padding:1
           <div class="callout amber"><strong>5 неполный Avtocod</strong>В логах ОСАГО `AvtocodMapper/ToEnrichmentCurrentOsago`: `Данные от автокод неполные.`.</div>
           <div class="callout red"><strong>1 без ответа обогащения</strong>`CarCharacteristicsRequestId IS NULL`, PaidRequests response отсутствует, `KaskoFromOsago` не запускался.</div>
         </div>
+        <p class="table-note">Важно: `29` — это не все подходящие из `979`. Это только заявки, которые уже прошли статусный gate `PaymentLinkReceived+` и не отсеялись по возрасту. По возрасту внутри `PaymentLinkReceived+` отсеялись `37` старых авто.</p>
         <div class="table-wrap section">
           <table>
             <thead><tr><th>ОСАГО ApplicationId</th><th>Номер</th><th>Статус</th><th>Год</th><th>Что найдено</th><th>Причина отсутствия КАСКО</th></tr></thead>
