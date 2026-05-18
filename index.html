@@ -1,602 +1,326 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ru">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>INS-1657 — КАСКО после ОСАГО | Prod review</title>
-<style>
-:root{
-  --bg:#f6f7f9;
-  --paper:#ffffff;
-  --ink:#17202a;
-  --muted:#667085;
-  --line:#d9e0e8;
-  --soft:#eef2f6;
-  --green:#188657;
-  --green-bg:#e8f6ef;
-  --amber:#b7791f;
-  --amber-bg:#fff4df;
-  --red:#c2413b;
-  --red-bg:#fdeceb;
-  --blue:#2477b8;
-  --blue-bg:#e7f1fb;
-  --teal:#0f766e;
-  --teal-bg:#e6f5f3;
-  --violet:#7258b8;
-  --violet-bg:#f0edfb;
-  --shadow:0 14px 34px rgba(28,39,49,.08);
-  --radius:8px;
-}
-*{box-sizing:border-box}
-html{scroll-behavior:smooth}
-body{
-  margin:0;
-  background:
-    linear-gradient(180deg,#fff 0,#f6f7f9 420px),
-    var(--bg);
-  color:var(--ink);
-  font:14px/1.5 Inter,Segoe UI,Arial,sans-serif;
-}
-button,input,select{font:inherit}
-.app{max-width:1440px;margin:0 auto;padding:22px}
-.topbar{
-  display:flex;align-items:center;justify-content:space-between;gap:16px;
-  padding:14px 0 18px;border-bottom:1px solid var(--line);
-}
-.brand{display:flex;gap:12px;align-items:center}
-.mark{
-  width:42px;height:42px;border-radius:8px;
-  background:conic-gradient(from 210deg,var(--blue),var(--teal),var(--amber),var(--blue));
-  box-shadow:inset 0 0 0 1px rgba(255,255,255,.7);
-}
-.eyebrow{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.08em}
-h1{margin:1px 0 0;font-size:24px;line-height:1.16;letter-spacing:0}
-.top-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-.pill{
-  display:inline-flex;align-items:center;gap:7px;border:1px solid var(--line);
-  background:var(--paper);border-radius:999px;padding:7px 11px;color:var(--muted);
-  white-space:nowrap;
-}
-.pill strong{color:var(--ink)}
-.layout{display:grid;grid-template-columns:248px minmax(0,1fr);gap:22px;margin-top:22px}
-.side{
-  position:sticky;top:14px;align-self:start;background:var(--paper);border:1px solid var(--line);
-  border-radius:var(--radius);box-shadow:var(--shadow);padding:12px;
-}
-.side a{
-  display:flex;align-items:center;gap:9px;color:#344054;text-decoration:none;
-  padding:9px 10px;border-radius:7px;margin:2px 0;
-}
-.side a:hover,.side a.active{background:var(--soft);color:var(--ink)}
-.side small{display:block;color:var(--muted);padding:10px 10px 6px}
-.hero{
-  background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);
-  box-shadow:var(--shadow);padding:24px;overflow:hidden;position:relative;
-}
-.hero:before{
-  content:"";position:absolute;inset:auto -80px -130px auto;width:360px;height:360px;
-  background:radial-gradient(circle at 55% 45%,rgba(36,119,184,.12),transparent 62%);
-  pointer-events:none;
-}
-.hero-grid{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(310px,.9fr);gap:22px;position:relative}
-.headline{font-size:34px;line-height:1.08;margin:0 0 12px;letter-spacing:0;max-width:860px}
-.lead{font-size:16px;color:#4b5563;max-width:900px;margin:0}
-.status-strip{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
-.tag{
-  display:inline-flex;align-items:center;gap:7px;border-radius:999px;padding:6px 10px;
-  font-weight:650;font-size:12px;border:1px solid transparent;
-}
-.ok{background:var(--green-bg);color:var(--green);border-color:#bee7d2}
-.warn{background:var(--amber-bg);color:var(--amber);border-color:#f6dca9}
-.bad{background:var(--red-bg);color:var(--red);border-color:#f2c4c0}
-.info{background:var(--blue-bg);color:var(--blue);border-color:#c5ddf4}
-.violet{background:var(--violet-bg);color:var(--violet);border-color:#d9d0f4}
-.mini-card{background:#fbfcfd;border:1px solid var(--line);border-radius:var(--radius);padding:14px}
-.mini-card h3{margin:0 0 10px;font-size:14px}
-.kv{display:grid;grid-template-columns:120px minmax(0,1fr);gap:8px 10px;font-size:13px}
-.kv span{color:var(--muted)}
-.mono{font-family:Consolas,Menlo,monospace;font-size:12px;word-break:break-all}
-.cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:16px 0}
-.metric{
-  background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);
-  padding:15px;box-shadow:0 8px 22px rgba(28,39,49,.05);min-height:116px;
-}
-.metric .num{display:block;font-size:31px;line-height:1;font-weight:780;margin-bottom:8px}
-.metric p{margin:0;color:var(--muted);font-size:13px}
-.metric .hint{margin-top:9px;font-size:12px;color:#475467}
-.num.green{color:var(--green);background:transparent}.num.amber{color:var(--amber);background:transparent}
-.num.red{color:var(--red);background:transparent}.num.blue{color:var(--blue);background:transparent}
-.section{margin-top:18px}
-.panel{
-  background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);
-  box-shadow:var(--shadow);padding:18px;
-}
-.panel-head{display:flex;justify-content:space-between;gap:14px;align-items:flex-start;margin-bottom:14px}
-.panel h2{font-size:20px;margin:0;letter-spacing:0}
-.panel .sub{color:var(--muted);margin:4px 0 0}
-.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
-.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
-.callout{
-  border:1px solid var(--line);border-left-width:5px;border-radius:var(--radius);
-  background:#fbfcfd;padding:13px 14px;
-}
-.callout strong{display:block;margin-bottom:4px}
-.callout.green{border-left-color:var(--green);background:var(--green-bg);color:var(--ink)}
-.callout.amber{border-left-color:var(--amber);background:var(--amber-bg);color:var(--ink)}
-.callout.red{border-left-color:var(--red);background:var(--red-bg);color:var(--ink)}
-.callout.blue{border-left-color:var(--blue);background:var(--blue-bg);color:var(--ink)}
-.flow{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;align-items:stretch}
-.step{position:relative;border:1px solid var(--line);border-radius:var(--radius);padding:12px;background:#fbfcfd}
-.step:after{
-  content:"";position:absolute;right:-8px;top:50%;width:14px;height:1px;background:var(--line);
-}
-.step:last-child:after{display:none}
-.step b{display:block;font-size:20px}
-.step span{display:block;color:var(--muted);font-size:12px;margin-top:2px}
-.bar-row{display:grid;grid-template-columns:130px minmax(0,1fr) 50px;gap:10px;align-items:center;margin:9px 0}
-.bar-track{height:12px;border-radius:999px;background:var(--soft);overflow:hidden;border:1px solid var(--line)}
-.bar-fill{height:100%;border-radius:999px}
-.bar-fill.green{background:var(--green)}.bar-fill.amber{background:var(--amber)}
-.bar-fill.red{background:var(--red)}.bar-fill.blue{background:var(--blue)}
-.tabs,.filters{display:flex;gap:8px;flex-wrap:wrap}
-.tab,.filter,.ghost-btn{
-  border:1px solid var(--line);background:var(--paper);border-radius:999px;padding:8px 11px;
-  color:#344054;cursor:pointer;line-height:1.1;
-}
-.tab.active,.filter.active,.ghost-btn:hover{background:#17202a;color:#fff;border-color:#17202a}
-.tools{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-.search{
-  min-width:260px;border:1px solid var(--line);border-radius:999px;padding:9px 12px;background:#fff;
-}
-.select{border:1px solid var(--line);border-radius:999px;padding:9px 12px;background:#fff;color:#344054}
-.table-wrap{overflow:auto;border:1px solid var(--line);border-radius:var(--radius);background:#fff}
-table{width:100%;border-collapse:collapse;min-width:1120px;font-size:13px}
-th,td{padding:10px 11px;border-bottom:1px solid var(--line);vertical-align:top;text-align:left}
-th{position:sticky;top:0;background:#f1f4f7;color:#344054;z-index:1;font-size:12px}
-tbody tr:hover{background:#fafbfd}
-.table-note{color:var(--muted);font-size:12px;margin-top:10px}
-.hidden{display:none!important}
-.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.test-list{display:grid;gap:10px}
-.test-item{display:grid;grid-template-columns:32px minmax(0,1fr) 96px;gap:10px;align-items:start;border:1px solid var(--line);border-radius:var(--radius);padding:11px;background:#fbfcfd}
-.check-icon{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font-weight:800}
-.footer{color:var(--muted);font-size:12px;margin:24px 0 4px;padding:15px 0;border-top:1px solid var(--line)}
-code{background:#f1f4f7;border:1px solid var(--line);border-radius:5px;padding:1px 5px;color:#243b53}
-@media(max-width:1180px){
-  .layout{grid-template-columns:1fr}.side{position:static;display:flex;overflow:auto}
-  .side small{display:none}.side a{white-space:nowrap}
-  .cards{grid-template-columns:repeat(2,1fr)}.hero-grid,.grid-2,.detail-grid{grid-template-columns:1fr}
-  .flow{grid-template-columns:1fr}.step:after{display:none}
-}
-@media(max-width:720px){
-  .app{padding:14px}.topbar,.panel-head{display:block}.top-actions{margin-top:12px}
-  .headline{font-size:28px}.cards,.grid-3{grid-template-columns:1fr}
-  .tools{display:block}.search,.select{width:100%;min-width:0;margin:4px 0}
-}
-</style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>INS-1657: КАСКО после ОСАГО</title>
+  <style>
+    :root {
+      --bg: #f6f7f9;
+      --panel: #ffffff;
+      --text: #111827;
+      --muted: #5b6472;
+      --line: #d9dee7;
+      --blue: #2563eb;
+      --green: #16803c;
+      --amber: #a15c05;
+      --red: #b42318;
+      --ink: #1f2937;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, Segoe UI, Roboto, Arial, sans-serif;
+      color: var(--text);
+      background: var(--bg);
+      line-height: 1.48;
+    }
+    .wrap { max-width: 1240px; margin: 0 auto; padding: 24px; }
+    header {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 20px;
+      align-items: start;
+      padding: 24px 0 18px;
+      border-bottom: 1px solid var(--line);
+    }
+    h1 { margin: 0; font-size: 34px; letter-spacing: 0; }
+    h2 { margin: 0 0 10px; font-size: 22px; letter-spacing: 0; }
+    h3 { margin: 0 0 8px; font-size: 17px; letter-spacing: 0; }
+    p { margin: 0 0 10px; }
+    .sub { color: var(--muted); }
+    .meta { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; }
+    .pill, .tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 9px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      font-size: 13px;
+      white-space: nowrap;
+    }
+    .tag.ok { color: var(--green); border-color: #b7dec4; background: #f0fbf3; }
+    .tag.warn { color: var(--amber); border-color: #f1cf9b; background: #fff8eb; }
+    .tag.bad { color: var(--red); border-color: #f2b8b5; background: #fff2f1; }
+    .tag.info { color: var(--blue); border-color: #bed0ff; background: #f1f5ff; }
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 5;
+      display: flex;
+      gap: 6px;
+      overflow: auto;
+      padding: 12px 0;
+      background: var(--bg);
+      border-bottom: 1px solid var(--line);
+    }
+    nav a {
+      color: var(--ink);
+      text-decoration: none;
+      padding: 8px 10px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      font-size: 14px;
+      flex: 0 0 auto;
+    }
+    section { margin-top: 22px; }
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 18px;
+    }
+    .hero {
+      display: grid;
+      grid-template-columns: 1.4fr .9fr;
+      gap: 16px;
+      align-items: stretch;
+    }
+    .cards, .grid-2, .grid-3 {
+      display: grid;
+      gap: 12px;
+    }
+    .cards { grid-template-columns: repeat(4, 1fr); }
+    .grid-2 { grid-template-columns: repeat(2, 1fr); }
+    .grid-3 { grid-template-columns: repeat(3, 1fr); }
+    .metric {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 16px;
+      min-height: 128px;
+    }
+    .num { display: block; font-size: 34px; font-weight: 800; line-height: 1; margin-bottom: 8px; }
+    .num.blue { color: var(--blue); }
+    .num.green { color: var(--green); }
+    .num.amber { color: var(--amber); }
+    .num.red { color: var(--red); }
+    .hint { color: var(--muted); font-size: 13px; margin-top: 8px; }
+    .callout {
+      border: 1px solid var(--line);
+      border-left-width: 4px;
+      border-radius: 8px;
+      padding: 13px;
+      background: #fff;
+    }
+    .callout strong { display: block; margin-bottom: 5px; }
+    .callout.green { border-left-color: var(--green); }
+    .callout.blue { border-left-color: var(--blue); }
+    .callout.amber { border-left-color: var(--amber); }
+    .callout.red { border-left-color: var(--red); }
+    .kv { display: grid; grid-template-columns: minmax(120px, .8fr) 1.2fr; gap: 8px 12px; font-size: 14px; }
+    .kv span { color: var(--muted); }
+    .mono { font-family: Consolas, Menlo, monospace; word-break: break-all; }
+    .flow { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
+    .step {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      padding: 13px;
+      min-height: 112px;
+    }
+    .step b { display: block; font-size: 28px; }
+    .step span { display: block; color: var(--muted); font-size: 13px; }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    th, td { text-align: left; padding: 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+    th { color: var(--muted); font-weight: 700; background: #f8fafc; }
+    .table-wrap { overflow: auto; border: 1px solid var(--line); border-radius: 8px; background: #fff; }
+    .filters { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+    button, input, select {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      padding: 9px 10px;
+      font: inherit;
+    }
+    button.active { color: #fff; background: var(--ink); border-color: var(--ink); }
+    input { min-width: 280px; }
+    .tools { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+    footer { margin: 28px 0 12px; color: var(--muted); font-size: 13px; }
+    @media (max-width: 900px) {
+      header, .hero, .cards, .grid-2, .grid-3, .flow { grid-template-columns: 1fr; }
+      .meta { justify-content: flex-start; }
+      .wrap { padding: 14px; }
+      h1 { font-size: 27px; }
+      input { min-width: 100%; }
+    }
+  </style>
 </head>
 <body>
-<div class="app">
-  <header class="topbar">
-    <div class="brand">
-      <div class="mark" aria-hidden="true"></div>
+  <div class="wrap">
+    <header>
       <div>
-        <div class="eyebrow">Prod review / INS-1657</div>
+        <div class="tag info">Prod review / INS-1657</div>
         <h1>КАСКО после ОСАГО</h1>
+        <p class="sub">Актуальная проверка фичи KaskoFromOsago и исторический срез прошлого отчета.</p>
       </div>
-    </div>
-    <div class="top-actions">
-      <span class="pill"><strong>Период:</strong> 06.05.2026–08.05.2026</span>
-      <span class="pill"><strong>БД:</strong> InsappCoreProd + InsappLogProd</span>
-      <span class="pill"><strong>Режим:</strong> read-only SELECT</span>
-    </div>
-  </header>
+      <div class="meta">
+        <span class="pill"><strong>Актуальный период:</strong> 09.05.2026-18.05.2026</span>
+        <span class="pill"><strong>БД:</strong> InsappCoreProd + InsappLogProd</span>
+        <span class="pill"><strong>Режим:</strong> read-only SELECT</span>
+      </div>
+    </header>
 
-  <div class="layout">
-    <nav class="side" id="nav">
-      <small>Навигация</small>
-      <a href="#summary" class="active">Итог</a>
-      <a href="#flow">Воронка</a>
-      <a href="#creation-gate">Почему 23</a>
-      <a href="#testing">Что проверяли</a>
-      <a href="#logs">Логи и ошибки</a>
-      <a href="#applications">Заявки</a>
-      <a href="#key-sales">Продажи по ключу</a>
-      <a href="#evidence">Доказательная база</a>
+    <nav>
+      <a href="#summary">Итог</a>
+      <a href="#actual">Актуальный срез</a>
+      <a href="#logs">Логи</a>
+      <a href="#sales">Продажи</a>
+      <a href="#historical">Прошлый отчет</a>
+      <a href="#evidence">Методика</a>
     </nav>
 
-    <main>
-      <section class="hero" id="summary">
-        <div class="hero-grid">
-          <div>
-            <h2 class="headline">Фича создает КАСКО-заявки корректно, но продаж по сценарию `ApplicationTypeId = 9` пока нет</h2>
-            <p class="lead">Проверка покрывает создание дочерней заявки, связь с родительской ОСАГО, корректность API-ключа, перенос данных клиента и авто, офферы, продажи, бизнес-логи и системные ошибки.</p>
-            <div class="status-strip">
-              <span class="tag ok">Создание OK</span>
-              <span class="tag ok">Данные 23/23 OK</span>
-              <span class="tag warn">6 офферов без оплаты</span>
-              <span class="tag bad">0 продаж фичи</span>
-              <span class="tag warn">1 ErrorLogs по родительской ОСАГО</span>
-            </div>
-          </div>
-          <div class="mini-card">
-            <h3>Проверенный ключ</h3>
-            <div class="kv">
-              <span>Партнер</span><b>АО "АЛЬФА-БАНК"</b>
-              <span>КАСКО key id</span><b class="mono">b35c7579-7f55-4c39-b368-2e424d5ab699</b>
-              <span>КАСКО api key</span><b class="mono">07b2d612fa3f45baae771e8223618e38</b>
-              <span>Назначение</span><b>Для KaskoFromOsago;</b>
-              <span>ОСАГО key id</span><b class="mono">6e5a6599-6a8f-4716-a199-f8b0637aa0af</b>
-              <span>ОСАГО описание</span><b>Раздел кэшбэк</b>
-            </div>
-          </div>
+    <section class="hero" id="summary">
+      <div class="panel">
+        <h2>Фича продолжает создавать дочерние КАСКО корректно, продаж по сценарию type 9 нет</h2>
+        <p>После прошлого отчета найдено 79 новых дочерних КАСКО-заявок `ApplicationTypeId = 9`. Все имеют родительскую ОСАГО, все созданы на ожидаемом KaskoFromOsago-ключе, ключевые данные клиента и авто совпали. Оплаченных заявок именно по сценарию фичи не найдено.</p>
+        <div class="filters">
+          <span class="tag ok">Создание OK</span>
+          <span class="tag ok">Данные 79/79 OK</span>
+          <span class="tag warn">20 офферов без оплаты</span>
+          <span class="tag bad">0 продаж type 9</span>
+          <span class="tag warn">4 PkaskoMapper ошибки</span>
         </div>
-      </section>
+      </div>
+      <div class="panel">
+        <h2>Проверенный ключ</h2>
+        <div class="kv">
+          <span>Партнер</span><b>АО "АЛЬФА-БАНК"</b>
+          <span>КАСКО key id</span><b class="mono">b35c7579-7f55-4c39-b368-2e424d5ab699</b>
+          <span>КАСКО api key</span><b class="mono">07b2d612fa3f45baae771e8223618e38</b>
+          <span>Назначение</span><b>Для KaskoFromOsago;</b>
+          <span>ОСАГО key id</span><b class="mono">6e5a6599-6a8f-4716-a199-f8b0637aa0af</b>
+          <span>ОСАГО описание</span><b>Раздел кешбэк</b>
+        </div>
+      </div>
+    </section>
 
-      <section class="cards">
-        <article class="metric">
-          <span class="num blue">23</span>
-          <p>дочерние КАСКО-заявки фичи</p>
-          <div class="hint">`ProductTypeId = 2`, `ApplicationTypeId = 9`</div>
-        </article>
-        <article class="metric">
-          <span class="num green">23/23</span>
-          <p>созданы на правильном KaskoFromOsago ключе</p>
-          <div class="hint">совпадает с настройкой ОСАГО-ключа</div>
-        </article>
-        <article class="metric">
-          <span class="num amber">6</span>
-          <p>получили оффер КАСКО на 4 950 ₽</p>
-          <div class="hint">продукт `КАСКО "за 3"`, Альфа</div>
-        </article>
-        <article class="metric">
-          <span class="num red">0</span>
-          <p>оплат именно по фиче</p>
-          <div class="hint">нет paid offer, policy number, transaction id</div>
-        </article>
-      </section>
+    <section class="cards">
+      <article class="metric"><span class="num blue">79</span><p>новых дочерних КАСКО-заявок фичи</p><div class="hint">`ProductTypeId = 2`, `ApplicationTypeId = 9`</div></article>
+      <article class="metric"><span class="num green">79/79</span><p>созданы на правильном KaskoFromOsago ключе</p><div class="hint">и имеют родителя ОСАГО</div></article>
+      <article class="metric"><span class="num amber">20</span><p>получили оффер КАСКО на 4 950 ₽</p><div class="hint">продукт `КАСКО "за 3"`, Альфа</div></article>
+      <article class="metric"><span class="num red">0</span><p>оплат именно по фиче</p><div class="hint">нет `ApplicationTypeId = 9` + `IsPaid = 1`</div></article>
+    </section>
 
-      <section class="section panel" id="flow">
-        <div class="panel-head">
-          <div>
-            <h2>Воронка фичи</h2>
-            <p class="sub">До проверки возраста дошли не все 979 ОСАГО, а только 66 заявок со статусом `PaymentLinkReceived` или дальше. Из этих 66 под возрастной критерий попали 29: остальные 37 отсеялись как авто старше 10 лет.</p>
-          </div>
-          <span class="tag info">23 заявки / 3 дня</span>
-        </div>
-        <div class="flow">
-          <div class="step"><b>979</b><span>ОСАГО</span><span>на ключе за период</span></div>
-          <div class="step"><b>66</b><span>PaymentLink+</span><span>дошли до ссылки/дальше</span></div>
-          <div class="step"><b>29</b><span>+ возраст</span><span>год авто >= 2016</span></div>
-          <div class="step"><b>23</b><span>+ обогащение</span><span>создана КАСКО type 9</span></div>
-          <div class="step"><b>0</b><span>Paid</span><span>продаж фичи нет</span></div>
-        </div>
-        <div class="grid-2 section">
-          <div class="callout blue">
-            <strong>Почему не считать все 979 потенциальными</strong>
-            914 ОСАГО не дошли до `PaymentLinkReceived`: 72 из них с авто до 10 лет, 199 старше 10 лет, 643 без года выпуска в данных авто.
-          </div>
-          <div class="callout amber">
-            <strong>Почему к валидации возраста попали только 66</strong>
-            Условие возраста применимо только после нужного статуса ОСАГО. Внутри этих 66: 29 авто не старше 10 лет, 37 авто старше 10 лет.
-          </div>
-        </div>
-        <div class="grid-3 section">
-          <div class="callout green"><strong>29 молодых авто</strong>Год выпуска `>= 2016`; это поверхностные кандидаты на создание КАСКО.</div>
-          <div class="callout red"><strong>37 старых авто</strong>Дошли до `PaymentLinkReceived+`, но не проходят ограничение "не старше 10 лет".</div>
-          <div class="callout amber"><strong>6 из 29 отсечены дальше</strong>5 с неполным Avtocod, 1 без видимого ответа обогащения; поэтому создано 23 КАСКО.</div>
-        </div>
-      </section>
+    <section class="panel" id="actual">
+      <h2>Актуальный срез 09.05.2026-18.05.2026</h2>
+      <p class="sub">Проверка выполнена 18.05.2026. Верхняя SQL-граница использовалась как `2026-05-19 00:00:00.000 +03:00`, чтобы захватить весь день 18.05 по московскому времени.</p>
+      <div class="grid-3">
+        <div class="callout green"><strong>Связь с ОСАГО</strong>`ParentApplicationId` заполнен 79/79; у всех родителей `ProductTypeId = 1`.</div>
+        <div class="callout green"><strong>Копирование данных</strong>`InsuredId`, `OwnerId`, `Driver1Id` совпали 79/79. `CarId` отдельный, но VIN, ГРЗ, год и мощность совпали 79/79.</div>
+        <div class="callout amber"><strong>Родительские ОСАГО</strong>Оплачено 33/79, не оплачено 46/79.</div>
+      </div>
+      <div class="flow" style="margin-top:12px">
+        <div class="step"><b>79</b><span>New</span><span>созданы</span></div>
+        <div class="step"><b>79</b><span>Filled</span><span>данные заполнены</span></div>
+        <div class="step"><b>71</b><span>SentToInsurers</span><span>ушли в СК</span></div>
+        <div class="step"><b>20</b><span>OfferRecived</span><span>есть оффер 4 950 ₽</span></div>
+        <div class="step"><b>0</b><span>Paid</span><span>оплат фичи нет</span></div>
+      </div>
+      <div class="table-wrap" style="margin-top:14px">
+        <table>
+          <thead><tr><th>Текущий статус КАСКО</th><th>Количество</th><th>Оплачено</th><th>Комментарий</th></tr></thead>
+          <tbody>
+            <tr><td><span class="tag bad">RejectAllInsurers</span></td><td>51</td><td>0</td><td>Отказные офферы Альфы по продукту `КАСКО "за 3"`.</td></tr>
+            <tr><td><span class="tag ok">OfferRecived</span></td><td>20</td><td>0</td><td>Оффер с премией 4 950 ₽, без `PolicyNumber` и `TransactionId`.</td></tr>
+            <tr><td><span class="tag warn">Filled</span></td><td>8</td><td>0</td><td>Заявка создана и заполнена, до оффера не дошла.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
 
-      <section class="section panel" id="creation-gate">
-        <div class="panel-head">
-          <div>
-            <h2>Почему создано только 23 КАСКО</h2>
-            <p class="sub">Проверка по родительским ОСАГО-заявкам: дочерняя КАСКО создается только после статуса оплаты/ссылки, возраста авто до 10 лет и успешного usable-обогащения Avtocod.</p>
-          </div>
-          <span class="tag warn">6 отсечены до KaskoFromOsago</span>
-        </div>
-        <div class="grid-3">
-          <div class="callout green"><strong>23 созданы</strong>Есть дочерняя заявка `ProductTypeId = 2`, `ApplicationTypeId = 9`, `ParentApplicationId` заполнен.</div>
-          <div class="callout amber"><strong>5 неполный Avtocod</strong>В логах ОСАГО `AvtocodMapper/ToEnrichmentCurrentOsago`: `Данные от автокод неполные.`.</div>
-          <div class="callout red"><strong>1 без ответа обогащения</strong>`CarCharacteristicsRequestId IS NULL`, PaidRequests response отсутствует, `KaskoFromOsago` не запускался.</div>
-        </div>
-        <p class="table-note">Важно: `29` — это не все подходящие из `979`. Это только заявки, которые уже прошли статусный gate `PaymentLinkReceived+` и не отсеялись по возрасту. По возрасту внутри `PaymentLinkReceived+` отсеялись `37` старых авто.</p>
-        <div class="table-wrap section">
-          <table>
-            <thead><tr><th>ОСАГО ApplicationId</th><th>Номер</th><th>Статус</th><th>Год</th><th>Что найдено</th><th>Причина отсутствия КАСКО</th></tr></thead>
-            <tbody>
-              <tr><td class="mono">08deaaea-c3ed-b788-25c3-3e2638f6bcab</td><td>89307575</td><td>Paid</td><td>2019</td><td>PaidRequests response есть</td><td>2 лога `Данные от автокод неполные.`</td></tr>
-              <tr><td class="mono">08deab01-bd00-06ed-25c3-3e2638050825</td><td>89309837</td><td>Paid</td><td>2023</td><td>`CarCharacteristicsRequestId IS NULL`</td><td>нет PaidRequests response и нет точных `KaskoFromOsago` логов</td></tr>
-              <tr><td class="mono">08deab39-2479-2d50-25c3-3e2638648122</td><td>89324296</td><td>BuyButtonPressed</td><td>2026</td><td>`CarCharacteristicsRequestId IS NULL`</td><td>1 лог `Данные от автокод неполные.`</td></tr>
-              <tr><td class="mono">08deab3a-4829-02a9-25c3-3e263868a73b</td><td>89324914</td><td>BuyButtonPressed</td><td>2026</td><td>`CarCharacteristicsRequestId IS NULL`</td><td>2 лога `Данные от автокод неполные.`</td></tr>
-              <tr><td class="mono">08deab3b-d840-226b-25c3-3e26386ecbc9</td><td>89325816</td><td>Paid</td><td>2026</td><td>`CarCharacteristicsRequestId IS NULL`</td><td>2 лога `Данные от автокод неполные.`</td></tr>
-              <tr><td class="mono">08deab3c-b67b-a855-25c3-3e26387210fa</td><td>89326295</td><td>Paid</td><td>2026</td><td>`CarCharacteristicsRequestId IS NULL`</td><td>2 лога `Данные от автокод неполные.`</td></tr>
-            </tbody>
-          </table>
-        </div>
-        <p class="table-note">Вывод: малое число созданных КАСКО ожидаемо после полного gate. Расхождение не 23 против 979, а 23 созданных из 29 поверхностно подходящих; оставшиеся 6 отсекаются до запуска `KaskoFromOsago`.</p>
-      </section>
+    <section class="panel" id="logs">
+      <h2>Логи и ошибки</h2>
+      <p class="sub">Правило чтения логов сохранено: бизнес/СК/Error logs проверяются по родительским ОСАГО `ApplicationId`, Avtocod — по дочерним КАСКО `ApplicationId`. Сводка ниже построена по двум релевантным ключам за актуальный период.</p>
+      <div class="grid-2">
+        <div class="callout blue"><strong>76 KaskoFromOsagoEmailHandler</strong>На 76 заявках письмо не отправлено: отсутствует согласие `InsappMarketingAgreement`.</div>
+        <div class="callout blue"><strong>47 AlfaKaskoIntegration</strong>`CalcOffer`: `Требуется согласование андеррайтера`.</div>
+        <div class="callout amber"><strong>8 ApplicationService</strong>`GetInfoForRedirect` на 5 заявках.</div>
+        <div class="callout red"><strong>4 ErrorLogs</strong>`PkaskoMapper.ToBaseKaskoRequest`: `Nullable object must have a value`.</div>
+      </div>
+      <div class="table-wrap" style="margin-top:14px">
+        <table>
+          <thead><tr><th>Родительская ОСАГО ApplicationId</th><th>Дочерняя КАСКО ApplicationId</th><th>КАСКО номер</th><th>Статус КАСКО</th><th>Ошибка</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">08dead94-8938-8bb6-25c3-3e26ecac1196</td><td class="mono">08dead95-abd8-cdbc-25c3-3e26ecaea2bc</td><td>89537048</td><td>RejectAllInsurers</td><td>`PkaskoMapper.ToBaseKaskoRequest`, line 14</td></tr>
+            <tr><td class="mono">08dead98-762b-b5d0-25c3-3e26ecb4ddf3</td><td class="mono">08dead98-af7d-0c4e-25c3-3e26ecb56ba6</td><td>89538047</td><td>RejectAllInsurers</td><td>`PkaskoMapper.ToBaseKaskoRequest`, line 14</td></tr>
+            <tr><td class="mono">08deb049-7ffe-3f4e-25c3-3e26ecde53f2</td><td class="mono">08deb04a-9d9b-352b-25c3-3e26ece26fe1</td><td>89764899</td><td>RejectAllInsurers</td><td>`PkaskoMapper.ToBaseKaskoRequest`, line 14</td></tr>
+            <tr><td class="mono">08deb414-2001-02d7-25c3-3e3248eb0030</td><td class="mono">08deb414-37b3-e650-25c3-3e3248eb2de3</td><td>90126872</td><td>RejectAllInsurers</td><td>`PkaskoMapper.ToBaseKaskoRequest`, line 14</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
 
-      <section class="section panel">
-        <div class="panel-head">
-          <div>
-            <h2>Воронка уже созданных КАСКО</h2>
-            <p class="sub">После создания дочерней заявки часть заявок стопорится на Avtocod, часть получает отказ СК, часть получает оффер без оплаты.</p>
-          </div>
-        </div>
-        <div class="flow">
-          <div class="step"><b>23</b><span>New</span><span>созданы</span></div>
-          <div class="step"><b>23</b><span>Filled</span><span>данные заполнены</span></div>
-          <div class="step"><b>19</b><span>SentToInsurers</span><span>ушли в СК</span></div>
-          <div class="step"><b>6</b><span>OfferRecived</span><span>есть оффер 4 950 ₽</span></div>
-          <div class="step"><b>0</b><span>Paid</span><span>оплат нет</span></div>
-        </div>
-        <div class="grid-2 section">
-          <div>
-            <div class="bar-row"><b>OfferRecived</b><div class="bar-track"><div class="bar-fill green" style="width:26%"></div></div><span>6</span></div>
-            <div class="bar-row"><b>RejectAll</b><div class="bar-track"><div class="bar-fill red" style="width:57%"></div></div><span>13</span></div>
-            <div class="bar-row"><b>Filled</b><div class="bar-track"><div class="bar-fill amber" style="width:17%"></div></div><span>4</span></div>
-          </div>
-          <div class="callout amber">
-            <strong>Главная интерпретация</strong>
-            Фича не падает на создании заявки. Потери происходят дальше: отказ СК, ошибки частей Avtocod-отчета и отсутствие оплаты по полученным офферам.
-          </div>
-        </div>
-      </section>
+    <section class="panel" id="sales">
+      <h2>Продажи по KaskoFromOsago API-ключу</h2>
+      <p class="sub">Отдельно проверено, были ли оплаты на самом API-ключе после прошлого отчета. Одна продажа есть, но это не сценарий фичи: `ApplicationTypeId = 5`, `ParentApplicationId = NULL`.</p>
+      <div class="cards">
+        <article class="metric"><span class="num blue">86</span><p>заявок на KaskoFromOsago ключе</p><div class="hint">все `ProductTypeId = 2`</div></article>
+        <article class="metric"><span class="num blue">79</span><p>заявок фичи type 9</p><div class="hint">с родительской ОСАГО</div></article>
+        <article class="metric"><span class="num green">1</span><p>оплаченная КАСКО на ключе</p><div class="hint">не сценарий фичи</div></article>
+        <article class="metric"><span class="num red">0</span><p>оплат фичи type 9</p><div class="hint">продаж KaskoFromOsago нет</div></article>
+      </div>
+      <div class="table-wrap" style="margin-top:14px">
+        <table>
+          <thead><tr><th>ApplicationId</th><th>Номер</th><th>Дата</th><th>ApplicationTypeId</th><th>ParentApplicationId</th><th>СК</th><th>Премия</th><th>Полис</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">08deb2a2-a591-2955-25c3-3e324830c892</td><td>90008489</td><td>2026-05-15T19:54:36.5389161+03:00</td><td>5</td><td>NULL</td><td>АО "СТРАХОВОЕ ОБЩЕСТВО ГАЗОВОЙ ПРОМЫШЛЕННОСТИ"</td><td>43 934.00</td><td class="mono">SGZA0005034578</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
 
-      <section class="section panel" id="testing">
-        <div class="panel-head">
-          <div>
-            <h2>Что именно проверяли</h2>
-            <p class="sub">Ниже не просто итоговые числа, а тестовая матрица: какой риск закрывали и чем подтверждали.</p>
-          </div>
-        </div>
-        <div class="test-list">
-          <div class="test-item"><span class="check-icon ok">✓</span><div><b>Создание дочерней КАСКО</b><br>Нашли 23 заявки `ProductTypeId = 2`, `ApplicationTypeId = 9`, все с `ParentApplicationId`.</div><span class="tag ok">OK</span></div>
-          <div class="test-item"><span class="check-icon ok">✓</span><div><b>Связь с ОСАГО</b><br>Все 23 родительские заявки имеют `ProductTypeId = 1`; связь строится через полный `ParentApplicationId`.</div><span class="tag ok">OK</span></div>
-          <div class="test-item"><span class="check-icon ok">✓</span><div><b>Правильный API-ключ</b><br>Все 23 КАСКО созданы на `b35c7579-7f55-4c39-b368-2e424d5ab699`, который указан в `KaskoFromOsagoApiKeyId` ОСАГО-ключа.</div><span class="tag ok">OK</span></div>
-          <div class="test-item"><span class="check-icon ok">✓</span><div><b>Копирование данных</b><br>`InsuredId`, `OwnerId`, `Driver1Id`, VIN, ГРЗ, год и мощность совпадают 23/23.</div><span class="tag ok">OK</span></div>
-          <div class="test-item"><span class="check-icon warn">!</span><div><b>Получение офферов</b><br>6 заявок получили оффер Альфы `КАСКО "за 3"` на 4 950 ₽; 13 получили отказ; 4 не дошли до оффера.</div><span class="tag warn">WARN</span></div>
-          <div class="test-item"><span class="check-icon bad">!</span><div><b>Продажа по фиче</b><br>По `ApplicationTypeId = 9` нет оплат, paid selected offer, полисов или transaction id.</div><span class="tag bad">NO SALES</span></div>
-          <div class="test-item"><span class="check-icon warn">!</span><div><b>Логи</b><br>Бизнес/СК-логи проверены по родительским ОСАГО, Avtocod — по дочерним КАСКО. Найдена 1 системная ошибка `PkaskoMapper`.</div><span class="tag warn">WARN</span></div>
-        </div>
-      </section>
+    <section class="panel" id="historical">
+      <h2>Исторический срез прошлого отчета 06.05.2026-08.05.2026</h2>
+      <p>Предыдущая версия отчета покрывала период `2026-05-06 00:00:00.000 +03:00` - `2026-05-09 00:00:00.000 +03:00`. Тогда было найдено 23 дочерние КАСКО-заявки фичи, все с корректным родителем ОСАГО и KaskoFromOsago-ключом. Было 6 офферов по 4 950 ₽, 13 отказов, 4 заявки на `Filled`, оплат по `ApplicationTypeId = 9` не было.</p>
+      <div class="grid-3">
+        <div class="callout green"><strong>23/23 создание OK</strong>Дочерние КАСКО `ProductTypeId = 2`, `ApplicationTypeId = 9`, `ParentApplicationId` заполнен.</div>
+        <div class="callout amber"><strong>Почему только 23</strong>Из 66 ОСАГО на `PaymentLinkReceived+` возрастной gate прошли 29, еще 6 отсеклись по Avtocod/enrichment.</div>
+        <div class="callout red"><strong>1 ErrorLogs</strong>`PkaskoMapper.ToBaseKaskoRequest` на родительской ОСАГО `08deac57-38f9-7f0b-25c3-3e0ba4717248`.</div>
+      </div>
+    </section>
 
-      <section class="section grid-2" id="logs">
-        <div class="panel">
-          <div class="panel-head">
-            <div>
-              <h2>Логи и ошибки</h2>
-              <p class="sub">С учетом уточнения: основной поток логирования КАСКО идет в рамках ОСАГО-заявки.</p>
-            </div>
-          </div>
-          <div class="grid-2">
-            <div class="callout blue"><strong>12 AlfaKaskoIntegration</strong>`CalcOffer` по родительским ОСАГО. Sample: `Требуется согласование андеррайтера`.</div>
-            <div class="callout blue"><strong>6 KaskoFromOsagoEmailHandler</strong>Письмо не отправлено: отсутствует `InsappMarketingAgreement`.</div>
-            <div class="callout amber"><strong>4 AvtocodClient</strong>Ошибки частей отчета `ads.price`, `mileages.registry`, `references.base` на дочерних КАСКО.</div>
-            <div class="callout red"><strong>1 ErrorLogs</strong>`PkaskoMapper.ToBaseKaskoRequest`: `Nullable object must have a value` на ОСАГО `08deac57-38f9-7f0b-25c3-3e0ba4717248`.</div>
-          </div>
+    <section class="panel" id="evidence">
+      <h2>Методика и ограничения</h2>
+      <div class="grid-2">
+        <div>
+          <h3>Что проверялось</h3>
+          <ul>
+            <li>создание дочерних КАСКО по `ProductTypeId = 2` и `ApplicationTypeId = 9`;</li>
+            <li>связь с родительской ОСАГО через полный `ParentApplicationId`;</li>
+            <li>соответствие `ApiKeyId` настройке `KaskoFromOsagoApiKeyId` ОСАГО-ключа;</li>
+            <li>копирование страхователя, собственника, первого водителя и ключевых полей автомобиля;</li>
+            <li>офферы, оплаты, полисы, бизнес-логи и системные ошибки.</li>
+          </ul>
         </div>
-        <div class="panel">
-          <h2>Правило чтения логов</h2>
-          <p>Для этой фичи нельзя смотреть только дочерний КАСКО `ApplicationId`: так пропускаются интеграционные и системные записи.</p>
-          <div class="detail-grid">
-            <div class="callout green"><strong>Смотреть по ОСАГО</strong>BusinessLogs, ErrorLogs, СК-интеграции, email handler.</div>
-            <div class="callout amber"><strong>Смотреть по КАСКО</strong>AvtocodClient и ошибки частей КАСКО-отчета.</div>
-          </div>
+        <div>
+          <h3>Источники</h3>
+          <ul>
+            <li>`InsappCoreProd`: `Applications`, `Offers`, `ApplicationStatuses`, `PartnerApiKeys`, `Cars`, `Insurers`, `InsurerKaskoProducts`;</li>
+            <li>`InsappLogProd`: `BusinessLogs`, `ErrorLogs`;</li>
+            <li>все запросы выполнялись как read-only SELECT;</li>
+            <li>для DateTimeOffset использовался timezone `+03:00`.</li>
+          </ul>
         </div>
-      </section>
+      </div>
+    </section>
 
-      <section class="section panel" id="applications">
-        <div class="panel-head">
-          <div>
-            <h2>Интерактивная таблица заявок фичи</h2>
-            <p class="sub">Фильтруй по статусу, оплате родительского ОСАГО или ищи полный GUID/номер.</p>
-          </div>
-          <div class="tools">
-            <input class="search" id="search" placeholder="Поиск по GUID, номеру, статусу">
-            <select class="select" id="osagoPaid">
-              <option value="all">ОСАГО: все</option>
-              <option value="да">ОСАГО оплачено</option>
-              <option value="нет">ОСАГО не оплачено</option>
-            </select>
-          </div>
-        </div>
-        <div class="filters" id="statusFilters">
-          <button class="filter active" data-status="all">Все</button>
-          <button class="filter" data-status="OfferRecived">OfferRecived</button>
-          <button class="filter" data-status="RejectAllInsurers">RejectAllInsurers</button>
-          <button class="filter" data-status="Filled">Filled</button>
-        </div>
-        <p class="table-note" id="tableCounter"></p>
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Каско ApplicationId</th>
-                <th>Создана</th>
-                <th>Статус КАСКО</th>
-                <th>ОСАГО ApplicationId</th>
-                <th>Статус ОСАГО</th>
-                <th>ОСАГО оплачено</th>
-                <th>Оффер</th>
-                <th>Данные</th>
-              </tr>
-            </thead>
-            <tbody id="applicationsBody"></tbody>
-          </table>
-        </div>
-      </section>
-
-      <section class="section panel" id="key-sales">
-        <div class="panel-head">
-          <div>
-            <h2>Продажи по API-ключу за все время</h2>
-            <p class="sub">Сам ключ продает, но это другие типы заявок. Фича `ApplicationTypeId = 9` продаж не дала.</p>
-          </div>
-          <span class="tag info">ApiKey: 07b2d612fa3f45baae771e8223618e38</span>
-        </div>
-        <div class="cards">
-          <article class="metric"><span class="num blue">92</span><p>всего заявок на ключе</p><div class="hint">первый запуск 17.04.2026</div></article>
-          <article class="metric"><span class="num green">6</span><p>оплаченных заявок всего</p><div class="hint">по `Applications.IsPaid = 1`</div></article>
-          <article class="metric"><span class="num green">4</span><p>оплаченных КАСКО</p><div class="hint">`ProductTypeId = 2`, не фича type 9</div></article>
-          <article class="metric"><span class="num red">0</span><p>оплат фичи type 9</p><div class="hint">23 заявки, 0 продаж</div></article>
-        </div>
-        <div class="table-wrap">
-          <table>
-            <thead><tr><th>ApplicationId</th><th>Дата</th><th>ProductTypeId</th><th>ApplicationTypeId</th><th>СК</th><th>Продукт</th><th>Премия</th><th>Полис</th></tr></thead>
-            <tbody id="salesBody"></tbody>
-          </table>
-        </div>
-      </section>
-
-      <section class="section panel" id="evidence">
-        <div class="panel-head">
-          <div>
-            <h2>Доказательная база и SQL-направления</h2>
-            <p class="sub">В отчет не вынесены персональные данные. Все проверки выполнялись read-only SELECT в продовых БД.</p>
-          </div>
-        </div>
-        <div class="grid-3">
-          <div class="callout blue"><strong>InsappCoreProd</strong>Applications, Offers, PartnerApiKeys, Partners, ApplicationStatusTypes, Insurers, InsurerKaskoProducts.</div>
-          <div class="callout blue"><strong>InsappLogProd</strong>BusinessLogs и ErrorLogs. Для логов использовались Date-фильтры и правильная привязка ApplicationId.</div>
-          <div class="callout green"><strong>Период фичи</strong>`2026-05-06 00:00:00.000 +03:00` до `2026-05-09 00:00:00.000 +03:00`.</div>
-        </div>
-        <div class="section grid-2">
-          <div>
-            <h3>Критерии успеха</h3>
-            <ul>
-              <li>КАСКО создается только на ключе `KaskoFromOsagoApiKeyId` родительского ОСАГО-ключа.</li>
-              <li>Дочерняя заявка имеет `ApplicationTypeId = 9` и `ParentApplicationId`.</li>
-              <li>Клиент, собственник, водитель и авто-данные совпадают с ОСАГО.</li>
-              <li>Офферы/отказы/оплаты подтверждаются через `Offers`, `Applications`, историю статусов и логи.</li>
-            </ul>
-          </div>
-          <div>
-            <h3>Открытые риски</h3>
-            <ul>
-              <li>1 системная ошибка `PkaskoMapper.ToBaseKaskoRequest` на родительской ОСАГО.</li>
-              <li>4 заявки не ушли дальше `Filled` из-за Avtocod-ошибок частей отчета.</li>
-              <li>6 заявок с оффером не были оплачены, поэтому нет конечной продажи фичи.</li>
-              <li>Email handler не отправляет часть писем из-за `InsappMarketingAgreement=false`.</li>
-            </ul>
-          </div>
-        </div>
-      </section>
-
-      <footer class="footer">
-        INS-1657 / КАСКО после ОСАГО. Обновлено 08.05.2026. Источник: InsappCoreProd + InsappLogProd, read-only SELECT. Полные GUID не сокращались.
-      </footer>
-    </main>
+    <footer>
+      INS-1657 / КАСКО после ОСАГО. Обновлено 18.05.2026. Источник: InsappCoreProd + InsappLogProd, read-only SELECT. Полные GUID не сокращались.
+    </footer>
   </div>
-</div>
-
-<script>
-const applications = [
-  {id:"08deab69-5eee-4a65-25c3-3e14b837467e",date:"06.05 15:16",status:"RejectAllInsurers",parent:"08deab68-c6d0-6daf-25c3-3e14b8351b37",osagoStatus:"PaymentLinkReceived",osagoPaid:"нет",offer:"Rejected, КАСКО \"за 3\"",data:"совпадают"},
-  {id:"08deab69-9dd4-52c8-25c3-3e14b8382589",date:"06.05 15:18",status:"RejectAllInsurers",parent:"08deab69-70ad-bfcb-25c3-3e14b8379023",osagoStatus:"PaymentLinkReceived",osagoPaid:"нет",offer:"Rejected, КАСКО \"за 3\"",data:"совпадают"},
-  {id:"08deab69-e071-660e-25c3-3e14b8391c5d",date:"06.05 15:20",status:"RejectAllInsurers",parent:"08deab69-bc35-a63a-25c3-3e14b8388df9",osagoStatus:"PaymentLinkReceived",osagoPaid:"нет",offer:"Rejected, КАСКО \"за 3\"",data:"совпадают"},
-  {id:"08deab6a-3a26-a007-25c3-3e14b83a5487",date:"06.05 15:23",status:"RejectAllInsurers",parent:"08deab69-f6dd-d6e6-25c3-3e14b8397341",osagoStatus:"Paid",osagoPaid:"да",offer:"Rejected, КАСКО \"за 3\"",data:"совпадают"},
-  {id:"08deab82-999c-73b6-25c3-3e14b88b86c4",date:"06.05 18:17",status:"RejectAllInsurers",parent:"08deab81-7316-62cd-25c3-3e14b887ceb3",osagoStatus:"PaymentLinkReceived",osagoPaid:"нет",offer:"Rejected, КАСКО \"за 3\"",data:"совпадают"},
-  {id:"08deab85-a41e-ed83-25c3-3e14b89552a2",date:"06.05 18:39",status:"Filled",parent:"08deab85-7ebd-d4d1-25c3-3e14b894d587",osagoStatus:"Paid",osagoPaid:"да",offer:"нет оффера",data:"совпадают"},
-  {id:"08deab89-e5e0-416f-25c3-3e14b8a2be6a",date:"06.05 19:09",status:"OfferRecived",parent:"08deab89-8f49-3eae-25c3-3e14b8a1c315",osagoStatus:"BuyButtonPressed",osagoPaid:"нет",offer:"Approved-like, 4 950 ₽",data:"совпадают"},
-  {id:"08deab8a-6c4f-f661-25c3-3e14b8a43dc9",date:"06.05 19:13",status:"OfferRecived",parent:"08deab8a-4be4-1415-25c3-3e14b8a3dde3",osagoStatus:"BuyButtonPressed",osagoPaid:"нет",offer:"Approved-like, 4 950 ₽",data:"совпадают"},
-  {id:"08deab8b-162b-df34-25c3-3e14b8a60501",date:"06.05 19:18",status:"OfferRecived",parent:"08deab8a-cda5-004e-25c3-3e14b8a5518d",osagoStatus:"Paid",osagoPaid:"да",offer:"Approved-like, 4 950 ₽",data:"совпадают"},
-  {id:"08deab9a-1131-6feb-25c3-3e14b8d532be",date:"06.05 21:05",status:"OfferRecived",parent:"08deab99-9be3-6176-25c3-3e14b8d38e49",osagoStatus:"BuyButtonPressed",osagoPaid:"нет",offer:"Approved-like, 4 950 ₽",data:"совпадают"},
-  {id:"08deab9a-4d8d-c5d8-25c3-3e14b8d60dc3",date:"06.05 21:07",status:"OfferRecived",parent:"08deab9a-3adb-8c98-25c3-3e14b8d5d3c3",osagoStatus:"Paid",osagoPaid:"да",offer:"Approved-like, 4 950 ₽",data:"совпадают"},
-  {id:"08deaba1-5578-56b5-25c3-3e14b8e8ceeb",date:"06.05 21:57",status:"Filled",parent:"08deab9f-0260-014e-25c3-3e14b8e33934",osagoStatus:"Paid",osagoPaid:"да",offer:"нет оффера",data:"совпадают"},
-  {id:"08deabe2-5e77-beab-25c3-3e14b8256d70",date:"07.05 05:43",status:"OfferRecived",parent:"08deabe1-754a-9de0-25c3-3e14b8238398",osagoStatus:"Paid",osagoPaid:"да",offer:"Approved-like, 4 950 ₽",data:"совпадают"},
-  {id:"08deabe3-e41a-13dc-25c3-3e14b827c106",date:"07.05 05:54",status:"RejectAllInsurers",parent:"08deabe3-8c4a-0650-25c3-3e14b8273f0e",osagoStatus:"BuyButtonPressed",osagoPaid:"нет",offer:"Rejected, КАСКО \"за 3\"",data:"совпадают"},
-  {id:"08deabe4-7b13-fc99-25c3-3e14b8288d3e",date:"07.05 05:58",status:"RejectAllInsurers",parent:"08deabe4-5990-ef01-25c3-3e14b828697b",osagoStatus:"BuyButtonPressed",osagoPaid:"нет",offer:"Rejected, КАСКО \"за 3\"",data:"совпадают"},
-  {id:"08deabe9-8fa8-69ee-25c3-3e14b8301fcc",date:"07.05 06:34",status:"RejectAllInsurers",parent:"08deabe9-67fa-2ccf-25c3-3e14b82fd73f",osagoStatus:"Paid",osagoPaid:"да",offer:"Rejected, КАСКО \"за 3\"",data:"совпадают"},
-  {id:"08deac00-6515-8d6b-25c3-3e14b86405a9",date:"07.05 09:18",status:"RejectAllInsurers",parent:"08deabff-723c-01b7-25c3-3e14b860e687",osagoStatus:"BuyButtonPressed",osagoPaid:"нет",offer:"Rejected, КАСКО \"за 3\"",data:"совпадают"},
-  {id:"08deac58-17b3-4a40-25c3-3e0ba4749916",date:"07.05 19:45",status:"RejectAllInsurers",parent:"08deac57-38f9-7f0b-25c3-3e0ba4717248",osagoStatus:"Paid",osagoPaid:"да",offer:"Rejected, КАСКО \"за 3\"",data:"совпадают"},
-  {id:"08deac9e-5c5a-5876-25c3-3e0ba4dd9a46",date:"08.05 04:08",status:"RejectAllInsurers",parent:"08deac9d-49f7-1f44-25c3-3e0ba4dcf2eb",osagoStatus:"BuyButtonPressed",osagoPaid:"нет",offer:"Rejected, КАСКО \"за 3\"",data:"совпадают"},
-  {id:"08deaccc-2b0f-01d5-25c3-3e0ba433f380",date:"08.05 09:36",status:"RejectAllInsurers",parent:"08deaccb-ef1d-2fbc-25c3-3e0ba4331582",osagoStatus:"PaymentLinkReceived",osagoPaid:"нет",offer:"Rejected, КАСКО \"за 3\"",data:"совпадают"},
-  {id:"08deaccd-d873-dcc0-25c3-3e0ba43a5046",date:"08.05 09:48",status:"RejectAllInsurers",parent:"08deaccc-883b-f10b-25c3-3e0ba4353c8b",osagoStatus:"Paid",osagoPaid:"да",offer:"Rejected, КАСКО \"за 3\"",data:"совпадают"},
-  {id:"08deacd3-92c0-3b68-25c3-3e0ba451e3cc",date:"08.05 10:29",status:"Filled",parent:"08deacd2-82f1-d012-25c3-3e0ba44c8d74",osagoStatus:"PaymentLinkReceived",osagoPaid:"нет",offer:"нет оффера",data:"совпадают"},
-  {id:"08deacd3-ba52-6590-25c3-3e0ba4528751",date:"08.05 10:30",status:"Filled",parent:"08deacd3-967e-f1aa-25c3-3e0ba451fcab",osagoStatus:"BuyButtonPressed",osagoPaid:"нет",offer:"нет оффера",data:"совпадают"}
-];
-
-const sales = [
-  {id:"08deab71-f303-4b8a-25c3-3e14b8547b1f",date:"06.05.2026 16:18",productType:"1",appType:"4",insurer:"САО \"ВСК\"",product:"ОСАГО",premium:"6 166.27",policy:"0646776054"},
-  {id:"08deab5b-dd2f-4b92-25c3-3e14b8069cbc",date:"06.05.2026 13:40",productType:"2",appType:"4",insurer:"АО \"СОГАЗ\"",product:"КАСКО",premium:"4 077.00",policy:"SGZA0003497497"},
-  {id:"08dea9d9-4913-3529-25c3-3e09003792cd",date:"04.05.2026 15:33",productType:"2",appType:"5",insurer:"САО \"РЕСО-ГАРАНТИЯ\"",product:"КАСКО",premium:"63 000.00",policy:"SYS2995080546"},
-  {id:"08dea9bc-757b-5117-25c3-3e0900c82b48",date:"04.05.2026 12:06",productType:"2",appType:"5",insurer:"АО \"СОГАЗ\"",product:"КАСКО",premium:"10 529.00",policy:"SGZA0004919946"},
-  {id:"08dea516-227c-3121-25c3-3e30f4ad5d79",date:"28.04.2026 14:06",productType:"2",appType:"5",insurer:"АО \"АЛЬФАСТРАХОВАНИЕ\"",product:"АльфаБИЗНЕС",premium:"43 878.00",policy:"08905/046/E03581/26"},
-  {id:"08de9ecc-d822-2955-a5ce-d43a08030459",date:"20.04.2026 14:06",productType:"13",appType:"4",insurer:"АО \"СОГАЗ\"",product:"ProductTypeId 13",premium:"14 880.00",policy:"SGZA0004285060"}
-];
-
-let activeStatus = "all";
-
-function badgeForStatus(status){
-  if(status === "OfferRecived") return "ok";
-  if(status === "Filled") return "warn";
-  return "bad";
-}
-
-function renderApplications(){
-  const q = document.getElementById("search").value.trim().toLowerCase();
-  const paid = document.getElementById("osagoPaid").value;
-  const rows = applications.filter(row => {
-    const haystack = Object.values(row).join(" ").toLowerCase();
-    return (activeStatus === "all" || row.status === activeStatus)
-      && (paid === "all" || row.osagoPaid === paid)
-      && (!q || haystack.includes(q));
-  });
-  document.getElementById("tableCounter").textContent = `Показано ${rows.length} из ${applications.length} заявок`;
-  document.getElementById("applicationsBody").innerHTML = rows.map(row => `
-    <tr>
-      <td class="mono">${row.id}</td>
-      <td>${row.date}</td>
-      <td><span class="tag ${badgeForStatus(row.status)}">${row.status}</span></td>
-      <td class="mono">${row.parent}</td>
-      <td>${row.osagoStatus}</td>
-      <td><span class="tag ${row.osagoPaid === "да" ? "ok" : "info"}">${row.osagoPaid}</span></td>
-      <td>${row.offer}</td>
-      <td><span class="tag ok">${row.data}</span></td>
-    </tr>`).join("");
-}
-
-function renderSales(){
-  document.getElementById("salesBody").innerHTML = sales.map(row => `
-    <tr>
-      <td class="mono">${row.id}</td>
-      <td>${row.date}</td>
-      <td>${row.productType}</td>
-      <td>${row.appType}</td>
-      <td>${row.insurer}</td>
-      <td>${row.product}</td>
-      <td>${row.premium}</td>
-      <td class="mono">${row.policy}</td>
-    </tr>`).join("");
-}
-
-document.querySelectorAll("#statusFilters .filter").forEach(button => {
-  button.addEventListener("click", () => {
-    document.querySelectorAll("#statusFilters .filter").forEach(b => b.classList.remove("active"));
-    button.classList.add("active");
-    activeStatus = button.dataset.status;
-    renderApplications();
-  });
-});
-document.getElementById("search").addEventListener("input", renderApplications);
-document.getElementById("osagoPaid").addEventListener("change", renderApplications);
-
-const navLinks = [...document.querySelectorAll("#nav a")];
-const sections = navLinks.map(link => document.querySelector(link.getAttribute("href")));
-window.addEventListener("scroll", () => {
-  let current = null;
-  sections.filter(Boolean).forEach(section => {
-    if(section.getBoundingClientRect().top <= 90) current = section;
-  });
-  if(!current) return;
-  navLinks.forEach(link => link.classList.toggle("active", link.getAttribute("href") === `#${current.id}`));
-}, {passive:true});
-
-renderApplications();
-renderSales();
-</script>
 </body>
 </html>
